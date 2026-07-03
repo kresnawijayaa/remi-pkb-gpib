@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import {
   createCommunityAction,
@@ -35,15 +34,6 @@ const menuItems: { key: MenuKey; label: string }[] = [
   { key: "import", label: "Import CSV" },
   { key: "game", label: "Permainan" },
   { key: "standings", label: "Top klasemen" },
-];
-
-const rotationProgressMessages = [
-  "Membaca data peserta aktif...",
-  "Menyusun kombinasi meja terbaik...",
-  "Mengurangi pertemuan peserta yang sama...",
-  "Menyeimbangkan komunitas di tiap meja...",
-  "Menghitung kualitas rotasi...",
-  "Menyimpan susunan babak...",
 ];
 
 export function TournamentSetupTabs({
@@ -283,7 +273,6 @@ export function TournamentSetupTabs({
           <div className="flex flex-wrap gap-2">
             <form action={generateRoundAction} className="flex flex-wrap items-center justify-end gap-3">
               <input type="hidden" name="tournamentId" value={tournamentId} />
-              <RotationProgressText />
               <SubmitButton
                 disabled={Boolean(cannotGenerateRoundReason)}
                 pendingText="Membuat babak..."
@@ -696,32 +685,6 @@ function CommunityEditRow({
         </SubmitButton>
       </form>
     </div>
-  );
-}
-
-function RotationProgressText() {
-  const { pending } = useFormStatus();
-  const [messageIndex, setMessageIndex] = useState(0);
-
-  useEffect(() => {
-    if (!pending) {
-      setMessageIndex(0);
-      return;
-    }
-
-    const interval = window.setInterval(() => {
-      setMessageIndex((current) => (current + 1) % rotationProgressMessages.length);
-    }, 1400);
-
-    return () => window.clearInterval(interval);
-  }, [pending]);
-
-  if (!pending) return null;
-
-  return (
-    <span className="max-w-[260px] text-right text-xs italic text-muted-foreground" aria-live="polite">
-      {rotationProgressMessages[messageIndex]}
-    </span>
   );
 }
 
