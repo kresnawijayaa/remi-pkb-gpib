@@ -114,10 +114,31 @@ export function ViewerBoard({
       )}
     >
       <div className="grid min-h-0 grid-rows-[auto_1fr_auto] gap-3 overflow-hidden">
-        <div className="grid gap-3 border-b border-background/20 pb-3 md:grid-cols-[1fr_auto] md:items-end">
+        <div className="border-b border-background/20 pb-3">
           <div>
             <Link href={`/tournaments/${tournamentId}`} className="text-sm font-semibold text-background/70">&larr; Dashboard</Link>
             <h1 className="mt-2 truncate text-4xl font-semibold lg:text-5xl">{tournamentName}</h1>
+          </div>
+        </div>
+
+        <div className={cn("grid min-h-0 gap-4 overflow-hidden", isFinal ? "md:grid-cols-2" : "md:grid-cols-2")}>
+          {visibleTables.map((table) => (
+            <TableCard key={`${table.id}-${safePage}`} table={table} isFinal={isFinal} />
+          ))}
+          {visibleTables.length === 0 && (
+            <div className="border border-background/20 p-8 text-background/70">
+              Belum ada data meja untuk ditampilkan.
+            </div>
+          )}
+        </div>
+
+        <div className="grid gap-3 border border-background/20 bg-background/[0.03] px-4 py-3 md:grid-cols-[1fr_auto] md:items-end">
+          <div>
+            <div className="text-[11px] font-semibold uppercase text-background/55">Sedang tampil</div>
+            <div className="mt-1 flex flex-wrap items-end gap-x-5 gap-y-1">
+              <div className="text-2xl font-semibold leading-none">{roundLabel}</div>
+              <div className="text-xs font-semibold uppercase text-amber-100">{statusLabel}</div>
+            </div>
           </div>
           <div className="grid justify-items-start gap-2 md:justify-items-end">
             <div className="flex flex-wrap gap-2">
@@ -151,25 +172,6 @@ export function ViewerBoard({
                 {isFullscreen ? "Keluar fullscreen" : "Fullscreen"}
               </button>
             </div>
-          </div>
-        </div>
-
-        <div className={cn("grid min-h-0 gap-4 overflow-hidden", isFinal ? "md:grid-cols-2" : "md:grid-cols-2")}>
-          {visibleTables.map((table) => (
-            <TableCard key={`${table.id}-${safePage}`} table={table} isFinal={isFinal} />
-          ))}
-          {visibleTables.length === 0 && (
-            <div className="border border-background/20 p-8 text-background/70">
-              Belum ada data meja untuk ditampilkan.
-            </div>
-          )}
-        </div>
-
-        <div className="border border-background/20 bg-background/[0.03] px-4 py-3">
-          <div className="text-[11px] font-semibold uppercase text-background/55">Sedang tampil</div>
-          <div className="mt-1 flex flex-wrap items-end gap-x-5 gap-y-1">
-            <div className="text-2xl font-semibold leading-none">{roundLabel}</div>
-            <div className="text-xs font-semibold uppercase text-amber-100">{statusLabel}</div>
           </div>
         </div>
       </div>
