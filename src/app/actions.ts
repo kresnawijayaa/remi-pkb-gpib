@@ -911,6 +911,90 @@ export async function generateRoundAction(formData: FormData) {
   redirect(`/tournaments/${tournamentId}/rounds/${round.id}`);
 }
 
+export async function deleteRoundAction(formData: FormData) {
+  await requireAuth();
+
+  const parsed = z.object({
+    tournamentId: z.string().uuid(),
+    roundId: z.string().uuid(),
+  }).parse({
+    tournamentId: value(formData, "tournamentId"),
+    roundId: value(formData, "roundId"),
+  });
+
+  const [round] = await sql`
+    select id, round_type, round_number
+    from rounds
+    where id = ${parsed.roundId}
+      and tournament_id = ${parsed.tournamentId}
+  `;
+
+  if (!round) throw new Error("Babak tidak ditemukan.");
+
+  const [lastRound] = await sql`
+    select id
+    from rounds
+    where tournament_id = ${parsed.tournamentId}
+    order by case when round_type = 'final' then 1 else 0 end desc,
+             round_number desc,
+             created_at desc
+    limit 1
+  `;
+
+  if (!lastRound || String(lastRound.id) !== parsed.roundId) {
+    throw new Error("Hanya babak paling akhir yang boleh dihapus.");
+  }
+
+  await sql`
+    insert into audit_logs (tournament_id, round_id, action, description, metadata)
+    values (
+      ${parsed.tournamentId},
+      ${parsed.roundId},
+      'DELETE_ROUND',
+      'Admin menghapus babak paling akhir.',
+      ${JSON.stringify({ roundType: round.round_type, roundNumber: Number(round.round_number) })}
+    )
+  `;
+
+  if (round.round_type === "final") {
+    await sql`delete from finalists where tournament_id = ${parsed.tournamentId}`;
+  }
+
+  await sql`
+    delete from rounds
+    where id = ${parsed.roundId}
+      and tournament_id = ${parsed.tournamentId}
+  `;
+
+  const [statusSummary] = await sql`
+    select
+      count(*)::int as round_count,
+      count(*) filter (where round_type = 'final' and status = 'locked')::int as locked_final_count,
+      count(*) filter (where status = 'active')::int as active_round_count
+    from rounds
+    where tournament_id = ${parsed.tournamentId}
+  `;
+
+  const nextStatus =
+    Number(statusSummary?.locked_final_count ?? 0) > 0
+      ? "finished"
+      : Number(statusSummary?.round_count ?? 0) > 0 || Number(statusSummary?.active_round_count ?? 0) > 0
+        ? "active"
+        : "draft";
+
+  await sql`
+    update tournaments
+    set status = ${nextStatus},
+        updated_at = now()
+    where id = ${parsed.tournamentId}
+  `;
+
+  revalidatePath(`/tournaments/${parsed.tournamentId}`);
+  revalidatePath(`/tournaments/${parsed.tournamentId}/standings`);
+  revalidatePath(`/tournaments/${parsed.tournamentId}/final`);
+  revalidatePath(`/tournaments/${parsed.tournamentId}/viewer`);
+}
+
 export async function reshuffleDraftRoundAction(formData: FormData) {
   await requireAuth();
   const start = Date.now();

@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   createCommunityAction,
   createParticipantAction,
+  deleteRoundAction,
   deleteCommunityAction,
   deleteParticipantAction,
   generateFinalAction,
@@ -71,6 +72,7 @@ export function TournamentSetupTabs({
   const qualificationLimitReached = qualificationRounds.length >= tournament.qualificationRoundCount;
   const hasUnlockedQualificationRound = qualificationRounds.some((round) => round.status !== "locked");
   const hasFinalRound = rounds.some((round) => round.roundType === "final");
+  const lastRoundId = rounds.at(-1)?.id ?? null;
   const nextRoundButtonLabel = qualificationRounds.length > 0 ? "Buat Babak Berikutnya" : "Buat Babak Pertama";
   const cannotGenerateRoundReason = hasUnlockedQualificationRound
     ? "Kunci babak berjalan dulu."
@@ -308,19 +310,45 @@ export function TournamentSetupTabs({
                 ) : (
                   <div className="grid gap-2 md:grid-cols-2">
                     {rounds.map((round) => (
-                      <Link
+                      <article
                         key={round.id}
-                        href={round.roundType === "final" ? `/tournaments/${tournamentId}/final` : `/tournaments/${tournamentId}/rounds/${round.id}`}
-                        className="grid gap-2 border border-border bg-background p-4 transition hover:border-primary hover:bg-secondary/40 active:translate-y-px"
+                        className="grid gap-3 border border-border bg-background p-4"
                       >
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="font-semibold">{round.roundType === "final" ? "Final" : `Babak ${round.roundNumber}`}</span>
-                          <Badge tone={round.status === "locked" ? "good" : round.status === "active" ? "warn" : "neutral"}>{round.status}</Badge>
+                        <Link
+                          href={round.roundType === "final" ? `/tournaments/${tournamentId}/final` : `/tournaments/${tournamentId}/rounds/${round.id}`}
+                          className="grid gap-2 transition hover:text-primary active:translate-y-px"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="font-semibold">{round.roundType === "final" ? "Final" : `Babak ${round.roundNumber}`}</span>
+                            <Badge tone={round.status === "locked" ? "good" : round.status === "active" ? "warn" : "neutral"}>{round.status}</Badge>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {round.roundType === "final" ? "Penentuan juara" : `Penyisihan ${Math.min(round.roundNumber, tournament.qualificationRoundCount)}/${tournament.qualificationRoundCount}`}
+                          </div>
+                        </Link>
+                        <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+                          <span className="text-xs text-muted-foreground">
+                            {round.id === lastRoundId ? "Babak terakhir" : "Terkunci dari hapus"}
+                          </span>
+                          {round.id === lastRoundId && (
+                            <form
+                              action={deleteRoundAction}
+                              onSubmit={(event) => {
+                                const label = round.roundType === "final" ? "Final" : `Babak ${round.roundNumber}`;
+                                if (!window.confirm(`Hapus ${label}? Semua meja, skor, dan data terkait babak ini akan terhapus.`)) {
+                                  event.preventDefault();
+                                }
+                              }}
+                            >
+                              <input type="hidden" name="tournamentId" value={tournamentId} />
+                              <input type="hidden" name="roundId" value={round.id} />
+                              <SubmitButton variant="ghost" size="sm" pendingText="Menghapus...">
+                                Hapus
+                              </SubmitButton>
+                            </form>
+                          )}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {round.roundType === "final" ? "Penentuan juara" : `Penyisihan ${Math.min(round.roundNumber, tournament.qualificationRoundCount)}/${tournament.qualificationRoundCount}`}
-                        </div>
-                      </Link>
+                      </article>
                     ))}
                   </div>
                 )}
