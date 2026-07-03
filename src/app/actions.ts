@@ -442,6 +442,54 @@ export async function createTournamentAction(formData: FormData) {
   redirect(`/tournaments/${row.id}`);
 }
 
+export async function updateTournamentAction(formData: FormData) {
+  await requireAuth();
+
+  const parsed = z.object({
+    tournamentId: z.string().uuid(),
+    name: z.string().min(3),
+    eventDate: z.string().optional(),
+    location: z.string().optional(),
+    status: z.enum(["draft", "active", "finished", "cancelled"]),
+  }).parse({
+    tournamentId: value(formData, "tournamentId"),
+    name: value(formData, "name"),
+    eventDate: value(formData, "eventDate") || undefined,
+    location: value(formData, "location") || undefined,
+    status: value(formData, "status"),
+  });
+
+  await sql`
+    update tournaments
+    set name = ${parsed.name},
+        event_date = ${parsed.eventDate ?? null},
+        location = ${parsed.location ?? null},
+        status = ${parsed.status},
+        updated_at = now()
+    where id = ${parsed.tournamentId}
+  `;
+
+  revalidatePath("/");
+  revalidatePath(`/tournaments/${parsed.tournamentId}`);
+}
+
+export async function deleteTournamentAction(formData: FormData) {
+  await requireAuth();
+
+  const parsed = z.object({
+    tournamentId: z.string().uuid(),
+  }).parse({
+    tournamentId: value(formData, "tournamentId"),
+  });
+
+  await sql`
+    delete from tournaments
+    where id = ${parsed.tournamentId}
+  `;
+
+  revalidatePath("/");
+}
+
 export async function createCommunityAction(formData: FormData) {
   await requireAuth();
 
@@ -456,6 +504,51 @@ export async function createCommunityAction(formData: FormData) {
   `;
 
   revalidatePath(`/tournaments/${tournamentId}`);
+}
+
+export async function updateCommunityAction(formData: FormData) {
+  await requireAuth();
+
+  const parsed = z.object({
+    tournamentId: z.string().uuid(),
+    communityId: z.string().uuid(),
+    name: z.string().min(2),
+  }).parse({
+    tournamentId: value(formData, "tournamentId"),
+    communityId: value(formData, "communityId"),
+    name: formatCommunityDisplayName(value(formData, "name")),
+  });
+
+  await sql`
+    update communities
+    set name = ${parsed.name},
+        normalized_name = ${normalizeCommunityName(parsed.name)},
+        updated_at = now()
+    where id = ${parsed.communityId}
+      and tournament_id = ${parsed.tournamentId}
+  `;
+
+  revalidatePath(`/tournaments/${parsed.tournamentId}`);
+}
+
+export async function deleteCommunityAction(formData: FormData) {
+  await requireAuth();
+
+  const parsed = z.object({
+    tournamentId: z.string().uuid(),
+    communityId: z.string().uuid(),
+  }).parse({
+    tournamentId: value(formData, "tournamentId"),
+    communityId: value(formData, "communityId"),
+  });
+
+  await sql`
+    delete from communities
+    where id = ${parsed.communityId}
+      and tournament_id = ${parsed.tournamentId}
+  `;
+
+  revalidatePath(`/tournaments/${parsed.tournamentId}`);
 }
 
 export async function createParticipantAction(formData: FormData) {
@@ -485,6 +578,71 @@ export async function createParticipantAction(formData: FormData) {
   `;
 
   revalidatePath(`/tournaments/${tournamentId}`);
+}
+
+export async function updateParticipantAction(formData: FormData) {
+  await requireAuth();
+
+  const tournamentId = value(formData, "tournamentId");
+  const participantId = value(formData, "participantId");
+  const communityId = value(formData, "communityId") || null;
+  const participantNumber = Number(value(formData, "participantNumber"));
+  const name = value(formData, "name");
+  const phone = value(formData, "phone") || null;
+  const status = value(formData, "status");
+
+  z.object({
+    tournamentId: z.string().uuid(),
+    participantId: z.string().uuid(),
+    participantNumber: z.number().int().positive(),
+    name: z.string().min(2),
+    status: z.enum(["active", "withdrawn", "disqualified"]),
+  }).parse({ tournamentId, participantId, participantNumber, name, status });
+
+  await sql`
+    update participants
+    set community_id = ${communityId},
+        participant_number = ${participantNumber},
+        name = ${name},
+        phone = ${phone},
+        status = ${status},
+        updated_at = now()
+    where id = ${participantId}
+      and tournament_id = ${tournamentId}
+  `;
+
+  revalidatePath(`/tournaments/${tournamentId}`);
+}
+
+export async function deleteParticipantAction(formData: FormData) {
+  await requireAuth();
+
+  const parsed = z.object({
+    tournamentId: z.string().uuid(),
+    participantId: z.string().uuid(),
+  }).parse({
+    tournamentId: value(formData, "tournamentId"),
+    participantId: value(formData, "participantId"),
+  });
+
+  const [{ used_count: usedCount }] = await sql`
+    select (
+      (select count(*) from table_players where tournament_id = ${parsed.tournamentId} and participant_id = ${parsed.participantId}) +
+      (select count(*) from finalists where tournament_id = ${parsed.tournamentId} and participant_id = ${parsed.participantId})
+    )::int as used_count
+  `;
+
+  if (Number(usedCount) > 0) {
+    throw new Error("Peserta sudah masuk babak. Ubah status menjadi withdrawn/disqualified jika tidak ikut lanjut.");
+  }
+
+  await sql`
+    delete from participants
+    where id = ${parsed.participantId}
+      and tournament_id = ${parsed.tournamentId}
+  `;
+
+  revalidatePath(`/tournaments/${parsed.tournamentId}`);
 }
 
 export async function importParticipantsAction(formData: FormData) {

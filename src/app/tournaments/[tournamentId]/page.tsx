@@ -5,6 +5,7 @@ import { calculateStandings } from "@/lib/tournament/standings";
 import { calculateFinalResults } from "@/lib/tournament/final-results";
 import { buttonClass } from "@/components/ui/button";
 import { TournamentSetupTabs } from "@/components/tournament/tournament-setup-tabs";
+import { ViewerLinkModal } from "@/components/tournament/viewer-link-modal";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export default async function TournamentPage({
           <p className="mt-2 text-muted-foreground">{tournament.eventDate ?? "Tanggal belum diisi"} / {tournament.location ?? "Lokasi belum diisi"}</p>
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
-          <Link className={buttonClass({ variant: "outline" })} href={`/tournaments/${tournamentId}/viewer`}>Viewer</Link>
+          <ViewerLinkModal viewerPath={`/tournaments/${tournamentId}/viewer`} />
           <Link className={buttonClass({ variant: "outline" })} href={`/api/export?tournamentId=${tournamentId}`}>Export Excel</Link>
         </div>
       </header>

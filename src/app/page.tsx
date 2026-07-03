@@ -1,12 +1,10 @@
-import Link from "next/link";
 import { createTournamentAction, logoutAction } from "@/app/actions";
 import { getTournaments } from "@/lib/data";
 import { requireAuth } from "@/lib/auth";
-import { buttonClass } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import { TournamentListRow } from "@/components/tournament/tournament-list-row";
 
 export const dynamic = "force-dynamic";
 
@@ -62,22 +60,7 @@ export default async function HomePage() {
           ) : (
             <div className="grid min-h-0 gap-3 overflow-y-auto pr-2 md:max-h-[calc(100vh-365px)]">
               {tournaments.map((tournament) => (
-                <Link
-                  key={tournament.id}
-                  href={`/tournaments/${tournament.id}`}
-                  className="group grid gap-3 border border-border bg-card p-5 transition hover:border-primary hover:bg-secondary/40 active:translate-y-px md:grid-cols-[1fr_auto]"
-                >
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-xl font-semibold group-hover:text-primary">{tournament.name}</h3>
-                      <Badge>{tournament.status}</Badge>
-                    </div>
-                    <div className="mt-2 text-sm text-muted-foreground">
-                      {tournament.eventDate ?? "Tanggal belum diisi"} / {tournament.location ?? "Lokasi belum diisi"}
-                    </div>
-                  </div>
-                  <span className={buttonClass({ variant: "outline" })}>Buka</span>
-                </Link>
+                <TournamentListRow key={tournament.id} tournament={tournament} />
               ))}
             </div>
           )}

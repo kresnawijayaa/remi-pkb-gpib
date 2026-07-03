@@ -113,7 +113,7 @@ export function ViewerBoard({
         isFinal ? "xl:grid-cols-2" : "xl:grid-cols-[3fr_2fr]"
       )}
     >
-      <div className="grid min-h-0 grid-rows-[auto_1fr] gap-3 overflow-hidden">
+      <div className="grid min-h-0 grid-rows-[auto_1fr_auto] gap-3 overflow-hidden">
         <div className="grid gap-3 border-b border-background/20 pb-3 md:grid-cols-[1fr_auto] md:items-end">
           <div>
             <Link href={`/tournaments/${tournamentId}`} className="text-sm font-semibold text-background/70">&larr; Dashboard</Link>
@@ -164,6 +164,14 @@ export function ViewerBoard({
             </div>
           )}
         </div>
+
+        <div className="border border-background/20 bg-background/[0.03] px-4 py-3">
+          <div className="text-[11px] font-semibold uppercase text-background/55">Sedang tampil</div>
+          <div className="mt-1 flex flex-wrap items-end gap-x-5 gap-y-1">
+            <div className="text-2xl font-semibold leading-none">{roundLabel}</div>
+            <div className="text-xs font-semibold uppercase text-amber-100">{statusLabel}</div>
+          </div>
+        </div>
       </div>
 
       {isFinal ? (
@@ -172,11 +180,6 @@ export function ViewerBoard({
         <QualificationLeaderboard rows={standings} />
       )}
 
-      <div className="fixed bottom-5 left-5 z-20 border border-background/20 bg-foreground/95 px-4 py-3 text-background shadow-sm">
-        <div className="text-[11px] font-semibold uppercase text-background/60">Sedang tampil</div>
-        <div className="mt-0.5 text-2xl font-semibold leading-none">{roundLabel}</div>
-        <div className="mt-1 text-xs font-semibold uppercase text-amber-100">{statusLabel}</div>
-      </div>
     </section>
   );
 }

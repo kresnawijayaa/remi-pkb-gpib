@@ -6,9 +6,13 @@ import Link from "next/link";
 import {
   createCommunityAction,
   createParticipantAction,
+  deleteCommunityAction,
+  deleteParticipantAction,
   generateFinalAction,
   generateRoundAction,
   importParticipantsAction,
+  updateCommunityAction,
+  updateParticipantAction,
 } from "@/app/actions";
 import type { Community, Participant, Round, StandingRow, Tournament } from "@/types/tournament";
 import type { FinalResultRow } from "@/lib/tournament/final-results";
@@ -16,6 +20,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -157,36 +162,33 @@ export function TournamentSetupTabs({
               <span className="text-sm text-muted-foreground">{participants.length} data</span>
             </div>
             <div className="max-h-[380px] overflow-auto border border-border">
-              <table className="w-full min-w-[620px] text-left text-sm">
-                <thead className="sticky top-0 bg-muted text-muted-foreground">
-                  <tr>
-                    <th className="w-20 p-3">No</th>
-                    <th>Nama</th>
-                    <th>Komunitas</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {participants.map((participant) => (
-                    <tr key={participant.id} className="border-t">
-                      <td className="p-3 font-semibold">{participant.participantNumber}</td>
-                      <td className="font-medium">{participant.name}</td>
-                      <td>{participant.communityName ?? "-"}</td>
-                      <td className="text-muted-foreground">{participant.status}</td>
-                    </tr>
-                  ))}
-                  {participants.length === 0 && (
-                    <tr>
-                      <td colSpan={4} className="p-6 text-muted-foreground">
-                        Belum ada peserta.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              <div className="hidden grid-cols-[72px_1.2fr_1fr_1fr_1fr_72px_72px] gap-2 bg-muted px-3 py-2 text-xs font-semibold uppercase text-muted-foreground lg:grid">
+                <div>No</div>
+                <div>Nama</div>
+                <div>Komunitas</div>
+                <div>No HP</div>
+                <div>Status</div>
+                <div></div>
+                <div></div>
+              </div>
+              <div className="divide-y divide-border">
+                {participants.map((participant) => (
+                  <ParticipantEditRow
+                    key={participant.id}
+                    tournamentId={tournamentId}
+                    participant={participant}
+                    communities={communities}
+                  />
+                ))}
+                {participants.length === 0 && (
+                  <div className="p-6 text-muted-foreground">
+                    Belum ada peserta.
+                  </div>
+                )}
             </div>
           </div>
         </div>
+      </div>
       </section>
       )}
 
@@ -212,21 +214,31 @@ export function TournamentSetupTabs({
               <h3 className="font-semibold">Daftar komunitas</h3>
               <span className="text-sm text-muted-foreground">{communities.length} data</span>
             </div>
-            <div className="grid max-h-[380px] gap-2 overflow-auto pr-2 sm:grid-cols-2">
-              {communities.map((community) => {
-                const count = participantCountByCommunity.get(community.id) ?? 0;
-                return (
-                  <div key={community.id} className="border border-border bg-background p-3">
-                    <div className="font-semibold">{community.name}</div>
-                    <div className="mt-1 text-sm text-muted-foreground">{count} peserta</div>
+            <div className="max-h-[380px] overflow-auto border border-border">
+              <div className="hidden grid-cols-[minmax(0,1fr)_120px_72px_72px] gap-2 bg-muted px-3 py-2 text-xs font-semibold uppercase text-muted-foreground lg:grid">
+                <div>Nama</div>
+                <div>Peserta</div>
+                <div></div>
+                <div></div>
+              </div>
+              <div className="divide-y divide-border">
+                {communities.map((community) => {
+                  const count = participantCountByCommunity.get(community.id) ?? 0;
+                  return (
+                    <CommunityEditRow
+                      key={community.id}
+                      tournamentId={tournamentId}
+                      community={community}
+                      participantCount={count}
+                    />
+                  );
+                })}
+                {communities.length === 0 && (
+                  <div className="p-6 text-muted-foreground">
+                    Belum ada komunitas.
                   </div>
-                );
-              })}
-              {communities.length === 0 && (
-                <div className="border border-dashed border-border p-6 text-muted-foreground">
-                  Belum ada komunitas.
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -271,8 +283,14 @@ export function TournamentSetupTabs({
           <div className="flex flex-wrap gap-2">
             <form action={generateRoundAction} className="flex flex-wrap items-center justify-end gap-3">
               <input type="hidden" name="tournamentId" value={tournamentId} />
-              <RotationProgressText fallbackText={cannotGenerateRoundReason} />
-              <SubmitButton disabled={Boolean(cannotGenerateRoundReason)} pendingText="Membuat babak...">{nextRoundButtonLabel}</SubmitButton>
+              <RotationProgressText />
+              <SubmitButton
+                disabled={Boolean(cannotGenerateRoundReason)}
+                pendingText="Membuat babak..."
+                title={cannotGenerateRoundReason ?? undefined}
+              >
+                {nextRoundButtonLabel}
+              </SubmitButton>
             </form>
             <form action={generateFinalAction}>
               <input type="hidden" name="tournamentId" value={tournamentId} />
@@ -480,7 +498,208 @@ export function TournamentSetupTabs({
   );
 }
 
-function RotationProgressText({ fallbackText }: { fallbackText: string | null }) {
+const participantStatuses: Participant["status"][] = ["active", "withdrawn", "disqualified"];
+
+function ParticipantEditRow({
+  tournamentId,
+  participant,
+  communities,
+}: {
+  tournamentId: string;
+  participant: Participant;
+  communities: Community[];
+}) {
+  const initialValues = useMemo(
+    () => ({
+      participantNumber: String(participant.participantNumber),
+      name: participant.name,
+      communityId: participant.communityId ?? "",
+      phone: participant.phone ?? "",
+      status: participant.status,
+    }),
+    [participant.communityId, participant.name, participant.participantNumber, participant.phone, participant.status]
+  );
+  const [editing, setEditing] = useState(false);
+  const [values, setValues] = useState(initialValues);
+
+  useEffect(() => {
+    setValues(initialValues);
+    setEditing(false);
+  }, [initialValues]);
+
+  const dirty =
+    values.participantNumber !== initialValues.participantNumber ||
+    values.name !== initialValues.name ||
+    values.communityId !== initialValues.communityId ||
+    values.phone !== initialValues.phone ||
+    values.status !== initialValues.status;
+
+  const resetEdit = () => {
+    setValues(initialValues);
+    setEditing(false);
+  };
+
+  return (
+    <div className={cn("grid gap-2 p-3 lg:grid-cols-[72px_1.2fr_1fr_1fr_1fr_72px_72px] lg:items-center", editing && "bg-secondary/30")}>
+      <form action={updateParticipantAction} className="contents">
+        <input type="hidden" name="tournamentId" value={tournamentId} />
+        <input type="hidden" name="participantId" value={participant.id} />
+        <Input
+          name="participantNumber"
+          type="number"
+          value={values.participantNumber}
+          onChange={(event) => setValues((current) => ({ ...current, participantNumber: event.target.value }))}
+          disabled={!editing}
+          required
+          aria-label="Nomor peserta"
+        />
+        <Input
+          name="name"
+          value={values.name}
+          onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
+          disabled={!editing}
+          required
+          aria-label="Nama peserta"
+        />
+        <select
+          name="communityId"
+          value={values.communityId}
+          onChange={(event) => setValues((current) => ({ ...current, communityId: event.target.value }))}
+          disabled={!editing}
+          className="h-10 rounded-sm border border-input bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-70"
+          aria-label="Komunitas peserta"
+        >
+          <option value="">Tanpa komunitas</option>
+          {communities.map((community) => (
+            <option key={community.id} value={community.id}>
+              {community.name}
+            </option>
+          ))}
+        </select>
+        <Input
+          name="phone"
+          value={values.phone}
+          onChange={(event) => setValues((current) => ({ ...current, phone: event.target.value }))}
+          disabled={!editing}
+          aria-label="No HP peserta"
+        />
+        <select
+          name="status"
+          value={values.status}
+          onChange={(event) => setValues((current) => ({ ...current, status: event.target.value as Participant["status"] }))}
+          disabled={!editing}
+          className="h-10 rounded-sm border border-input bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-70"
+          aria-label="Status peserta"
+        >
+          {participantStatuses.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+        {!editing ? (
+          <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>
+            Edit
+          </Button>
+        ) : dirty ? (
+          <SubmitButton size="sm" variant="outline" pendingText="...">
+            Simpan
+          </SubmitButton>
+        ) : (
+          <Button type="button" size="sm" variant="outline" onClick={resetEdit}>
+            Batal
+          </Button>
+        )}
+      </form>
+      <form
+        action={deleteParticipantAction}
+        onSubmit={(event) => {
+          if (!window.confirm(`Hapus peserta ${participant.name}?`)) event.preventDefault();
+        }}
+      >
+        <input type="hidden" name="tournamentId" value={tournamentId} />
+        <input type="hidden" name="participantId" value={participant.id} />
+        <SubmitButton size="sm" variant="ghost" pendingText="...">
+          Hapus
+        </SubmitButton>
+      </form>
+    </div>
+  );
+}
+
+function CommunityEditRow({
+  tournamentId,
+  community,
+  participantCount,
+}: {
+  tournamentId: string;
+  community: Community;
+  participantCount: number;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(community.name);
+
+  useEffect(() => {
+    setName(community.name);
+    setEditing(false);
+  }, [community.name]);
+
+  const dirty = name !== community.name;
+
+  const resetEdit = () => {
+    setName(community.name);
+    setEditing(false);
+  };
+
+  return (
+    <div className={cn("grid gap-2 p-3 lg:grid-cols-[minmax(0,1fr)_120px_72px_72px] lg:items-center", editing && "bg-secondary/30")}>
+      <form action={updateCommunityAction} className="contents">
+        <input type="hidden" name="tournamentId" value={tournamentId} />
+        <input type="hidden" name="communityId" value={community.id} />
+        <Input
+          name="name"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          disabled={!editing}
+          required
+          aria-label="Nama komunitas"
+        />
+        <div className="text-sm text-muted-foreground">
+          {participantCount} peserta
+        </div>
+        {!editing ? (
+          <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>
+            Edit
+          </Button>
+        ) : dirty ? (
+          <SubmitButton size="sm" variant="outline" pendingText="...">
+            Simpan
+          </SubmitButton>
+        ) : (
+          <Button type="button" size="sm" variant="outline" onClick={resetEdit}>
+            Batal
+          </Button>
+        )}
+      </form>
+      <form
+        action={deleteCommunityAction}
+        onSubmit={(event) => {
+          if (!window.confirm(`Hapus komunitas ${community.name}? Peserta di komunitas ini akan menjadi tanpa komunitas.`)) {
+            event.preventDefault();
+          }
+        }}
+      >
+        <input type="hidden" name="tournamentId" value={tournamentId} />
+        <input type="hidden" name="communityId" value={community.id} />
+        <SubmitButton size="sm" variant="ghost" pendingText="...">
+          Hapus
+        </SubmitButton>
+      </form>
+    </div>
+  );
+}
+
+function RotationProgressText() {
   const { pending } = useFormStatus();
   const [messageIndex, setMessageIndex] = useState(0);
 
@@ -497,11 +716,11 @@ function RotationProgressText({ fallbackText }: { fallbackText: string | null })
     return () => window.clearInterval(interval);
   }, [pending]);
 
-  if (!pending && !fallbackText) return null;
+  if (!pending) return null;
 
   return (
     <span className="max-w-[260px] text-right text-xs italic text-muted-foreground" aria-live="polite">
-      {pending ? rotationProgressMessages[messageIndex] : fallbackText}
+      {rotationProgressMessages[messageIndex]}
     </span>
   );
 }
