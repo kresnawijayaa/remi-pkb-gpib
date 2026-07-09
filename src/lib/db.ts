@@ -23,7 +23,7 @@ function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export const sql = (async (strings: TemplateStringsArray, ...values: unknown[]) => {
+const sqlTagged = async (strings: TemplateStringsArray, ...values: unknown[]) => {
   let lastError: unknown;
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -40,6 +40,12 @@ export const sql = (async (strings: TemplateStringsArray, ...values: unknown[]) 
   }
 
   throw lastError;
+};
+
+export const sql = Object.assign(sqlTagged, {
+  query: rawSql.query.bind(rawSql),
+  unsafe: rawSql.unsafe.bind(rawSql),
+  transaction: rawSql.transaction.bind(rawSql),
 }) as typeof rawSql;
 
 function serializeDbValue(value: unknown) {

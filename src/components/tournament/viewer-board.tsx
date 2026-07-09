@@ -54,7 +54,7 @@ export function ViewerBoard({
 }: {
   tournamentId: string;
   tournamentName: string;
-  roundType: "qualification" | "final";
+  roundType: "qualification" | "semifinal" | "final";
   roundLabel: string;
   statusLabel: string;
   tables: ViewerTable[];
@@ -110,10 +110,10 @@ export function ViewerBoard({
     <section
       className={cn(
         "app-container grid h-[calc(100vh-32px)] min-h-0 gap-5 overflow-hidden",
-        isFinal ? "xl:grid-cols-2" : "xl:grid-cols-[3fr_2fr]"
+        isFinal ? "xl:grid-cols-2" : "xl:grid-cols-[7fr_5fr]"
       )}
     >
-      <div className="grid min-h-0 grid-rows-[auto_1fr_auto] gap-3 overflow-hidden">
+      <div className="grid min-h-0 grid-rows-[auto_auto_1fr_auto] gap-3 overflow-hidden">
         <div className="border-b border-background/20 pb-3">
           <div>
             <Link href={`/tournaments/${tournamentId}`} className="text-sm font-semibold text-background/70">&larr; Dashboard</Link>
@@ -121,29 +121,14 @@ export function ViewerBoard({
           </div>
         </div>
 
-        <div className={cn("grid min-h-0 gap-4 overflow-hidden", isFinal ? "md:grid-cols-2" : "md:grid-cols-2")}>
-          {visibleTables.map((table) => (
-            <TableCard key={`${table.id}-${safePage}`} table={table} isFinal={isFinal} />
-          ))}
-          {visibleTables.length === 0 && (
-            <div className="border border-background/20 p-8 text-background/70">
-              Belum ada data meja untuk ditampilkan.
-            </div>
-          )}
-        </div>
-
-        <div className="grid gap-3 border border-background/20 bg-background/[0.03] px-4 py-3 md:grid-cols-[1fr_auto] md:items-end">
-          <div>
-            <div className="text-[11px] font-semibold uppercase text-background/55">Sedang tampil</div>
-            <div className="mt-1 flex flex-wrap items-end gap-x-5 gap-y-1">
-              <div className="text-2xl font-semibold leading-none">{roundLabel}</div>
-              <div className="text-xs font-semibold uppercase text-amber-100">{statusLabel}</div>
-            </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="text-2xl font-semibold leading-none">{roundLabel}</div>
+            <div className="text-xs font-semibold uppercase text-amber-100">{statusLabel}</div>
           </div>
-          <div className="grid justify-items-start gap-2 md:justify-items-end">
-            <div className="flex flex-wrap gap-2">
-              {tablePages.length > 1 && (
-                <>
+          <div className="flex flex-wrap gap-2">
+            {tablePages.length > 1 && (
+              <>
                 <button type="button" onClick={goPrev} className="border border-background/20 px-3 py-1.5 text-sm font-semibold transition hover:bg-background/10 active:translate-y-px">
                   Sebelumnya
                 </button>
@@ -162,15 +147,37 @@ export function ViewerBoard({
                 >
                   Auto {autoPlay ? "on" : "off"}
                 </button>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={toggleFullscreen}
-                className="border border-background/20 px-3 py-1.5 text-sm font-semibold transition hover:bg-background/10 active:translate-y-px"
-              >
-                {isFullscreen ? "Keluar fullscreen" : "Fullscreen"}
-              </button>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="border border-background/20 px-3 py-1.5 text-sm font-semibold transition hover:bg-background/10 active:translate-y-px"
+            >
+              {isFullscreen ? "Keluar fullscreen" : "Fullscreen"}
+            </button>
+          </div>
+        </div>
+
+        <div className={cn("grid min-h-0 gap-4 overflow-hidden", isFinal ? "md:grid-cols-2" : "md:grid-cols-2")}>
+          {visibleTables.map((table) => (
+            <TableCard key={`${table.id}-${safePage}`} table={table} isFinal={isFinal} />
+          ))}
+          {visibleTables.length === 0 && (
+            <div className="border border-background/20 p-8 text-background/70">
+              Belum ada data meja untuk ditampilkan.
+            </div>
+          )}
+        </div>
+
+        <div className="flex min-h-0 items-end justify-start">
+          <div>
+            <div className="border border-background/20 bg-background/[0.03] px-3 py-2">
+              <div className="text-[11px] font-semibold uppercase text-background/55">Sedang tampil</div>
+              <div className="mt-1 flex flex-wrap items-end gap-3">
+                <div className="text-lg font-semibold leading-none">{roundLabel}</div>
+                <div className="text-[11px] font-semibold uppercase text-amber-100">{statusLabel}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -188,12 +195,12 @@ export function ViewerBoard({
 
 function TableCard({ table, isFinal }: { table: ViewerTable; isFinal: boolean }) {
   return (
-    <article className="grid min-h-0 grid-rows-[auto_1fr] overflow-hidden border border-background/20 bg-background/[0.03] p-5">
-      <div className="flex items-end justify-between gap-4 border-b border-background/15 pb-3">
-        <h2 className="text-3xl font-semibold">{table.tableName}</h2>
+    <article className="grid min-h-0 grid-rows-[auto_1fr] overflow-hidden border border-background/20 bg-background/[0.03] p-4">
+      <div className="flex items-end justify-between gap-4 border-b border-background/15 pb-2.5">
+        <h2 className="text-2xl font-semibold xl:text-3xl">{table.tableName}</h2>
         <div className="text-right text-sm uppercase text-background/55">Meja {table.tableNumber}</div>
       </div>
-      <div className="mt-4 grid min-h-0 content-start gap-2 overflow-hidden">
+      <div className="mt-3 grid min-h-0 content-start gap-1.5 overflow-hidden">
         {table.players.map((player) => (
           <div
             key={player.id}
@@ -204,8 +211,8 @@ function TableCard({ table, isFinal }: { table: ViewerTable; isFinal: boolean })
           >
             <div className="text-xl font-semibold text-background/70">{player.seatNumber}</div>
             <div className="min-w-0">
-              <div className="truncate text-2xl font-semibold leading-tight xl:text-3xl">{player.participantName}</div>
-              <div className="mt-0.5 truncate text-base text-background/60 xl:text-lg">{player.communityName ?? "-"}</div>
+              <div className="truncate text-2xl font-semibold leading-tight">{player.participantName}</div>
+              <div className="mt-0.5 truncate text-base text-background/60">{player.communityName ?? "-"}</div>
             </div>
             <div className="min-w-[74px] text-right">
               {player.tableRank && <div className="text-lg font-semibold">R{player.tableRank}</div>}
@@ -230,32 +237,40 @@ function QualificationLeaderboard({ rows }: { rows: ViewerStanding[] }) {
         </div>
         <div className="text-xl font-semibold">{rows.length}</div>
       </div>
-      <div className="mt-2 grid min-h-0 grid-cols-2 gap-3 overflow-hidden">
+      <div className="mt-2 grid min-h-0 grid-cols-2 gap-0 overflow-hidden">
         {columns.map((column, index) => (
-          <table key={index} className="w-full table-fixed text-left text-[10px] leading-none">
-            <thead className="text-background/60">
-              <tr>
-                <th className="w-6 py-0.5">#</th>
-                <th>Peserta</th>
-                <th className="w-8 text-right">P</th>
-                <th className="w-12 text-right">Skor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {column.map((row) => (
-                <tr key={row.participantId} className="border-t border-background/10">
-                  <td className="py-[3px] pr-1 font-semibold">{row.rank}</td>
-                  <td className="min-w-0 py-[3px]">
-                    <div className="truncate font-semibold" title={`${row.name} / ${row.communityName ?? "-"}`}>
-                      {row.name}
-                    </div>
-                  </td>
-                  <td className="py-[3px] text-right font-semibold">{row.totalPoint}</td>
-                  <td className="py-[3px] text-right text-background/70">{row.totalScore}</td>
+          <div
+            key={index}
+            className={cn(
+              "min-w-0",
+              index > 0 && "ml-3 border-l border-background/25 pl-3"
+            )}
+          >
+            <table className="w-full table-fixed text-left text-[10px] leading-tight">
+              <thead className="text-background/60">
+                <tr>
+                  <th className="w-6 py-1">#</th>
+                  <th>Peserta</th>
+                  <th className="w-7 text-right">P</th>
+                  <th className="w-10 text-right">Skor</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {column.map((row) => (
+                  <tr key={row.participantId} className="border-t border-background/10">
+                    <td className="py-[6px] pr-1 font-semibold">{row.rank}</td>
+                    <td className="min-w-0 py-[6px] pr-1">
+                      <div className="truncate font-semibold" title={`${row.name} / ${row.communityName ?? "-"}`}>
+                        {row.name}
+                      </div>
+                    </td>
+                    <td className="py-[6px] text-right font-semibold">{row.totalPoint}</td>
+                    <td className="py-[6px] text-right text-background/70">{row.totalScore}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ))}
         {rows.length === 0 && (
           <div className="col-span-2 border border-background/15 p-5 text-background/60">

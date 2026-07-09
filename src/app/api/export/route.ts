@@ -23,12 +23,20 @@ export async function GET(request: Request) {
   if (!tournament) return new NextResponse("Turnamen tidak ditemukan", { status: 404 });
 
   const roundData = await Promise.all(
-    rounds.map(async (round) => ({
-      round,
-      tables: await getTables(round.id),
-      players: await getTablePlayersByRound(round.id),
-    }))
+    rounds.map(async (round) => {
+      const [tables, players] = await Promise.all([
+        getTables(round.id),
+        getTablePlayersByRound(round.id),
+      ]);
+
+      return {
+        round,
+        tables,
+        players,
+      };
+    })
   );
+  const roundDataByKey = new Map(roundData.map((item) => [`${item.round.roundType}-${item.round.roundNumber}`, item] as const));
   const standings = calculateStandings(scoredRows);
   const workbook = XLSX.utils.book_new();
 
@@ -36,7 +44,7 @@ export async function GET(request: Request) {
   XLSX.utils.book_append_sheet(workbook, createStandingsWorksheet(standings), "Klasemen");
 
   for (let roundNumber = 1; roundNumber <= 4; roundNumber++) {
-    const data = roundData.find((item) => item.round.roundType === "qualification" && item.round.roundNumber === roundNumber);
+    const data = roundDataByKey.get(`qualification-${roundNumber}`);
     XLSX.utils.book_append_sheet(
       workbook,
       createRoundWorksheet({
@@ -52,7 +60,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const finalData = roundData.find((item) => item.round.roundType === "final");
+  const finalData = roundDataByKey.get("final-1");
   XLSX.utils.book_append_sheet(
     workbook,
     createRoundWorksheet({

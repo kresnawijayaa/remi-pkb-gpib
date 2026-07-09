@@ -34,6 +34,8 @@ export default async function RoundPage({
   ]);
 
   if (!tournament || !round) return <main className="p-8">Babak tidak ditemukan.</main>;
+  const roundLabel = round.roundType === "semifinal" ? "Semi Final" : `Babak ${round.roundNumber}`;
+  const isQualificationRound = round.roundType === "qualification";
   const rotationWarnings = normalizeRotationWarnings(round.rotationWarnings);
   const warningsByTable = rotationWarnings.reduce<Record<number, RotationWarningSummary[]>>((map, warning) => {
     map[warning.tableNumber] = [...(map[warning.tableNumber] ?? []), warning];
@@ -71,7 +73,7 @@ export default async function RoundPage({
       <header className="flex flex-col gap-4 border-b border-border pb-6 md:flex-row md:items-end md:justify-between">
         <div>
           <Link href={`/tournaments/${tournamentId}`} className="text-sm font-semibold text-primary">&larr; Dashboard</Link>
-          <h1 className="mt-3 text-4xl font-semibold">Babak {round.roundNumber}</h1>
+          <h1 className="mt-3 text-4xl font-semibold">{roundLabel}</h1>
           <div className="mt-2 flex gap-2"><Badge>{round.status}</Badge></div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -79,14 +81,14 @@ export default async function RoundPage({
             <form action={activateRoundAction}>
               <input type="hidden" name="tournamentId" value={tournamentId} />
               <input type="hidden" name="roundId" value={roundId} />
-              <SubmitButton pendingText="Mengaktifkan...">Aktifkan Babak</SubmitButton>
+              <SubmitButton pendingText="Mengaktifkan...">Aktifkan {round.roundType === "semifinal" ? "Semi Final" : "Babak"}</SubmitButton>
             </form>
           )}
           {round.status !== "locked" && (
             <form action={lockRoundAction}>
               <input type="hidden" name="tournamentId" value={tournamentId} />
               <input type="hidden" name="roundId" value={roundId} />
-              <SubmitButton variant="outline" disabled={!canLockRound} pendingText="Mengunci...">Kunci Babak</SubmitButton>
+              <SubmitButton variant="outline" disabled={!canLockRound} pendingText="Mengunci...">Kunci {round.roundType === "semifinal" ? "Semi Final" : "Babak"}</SubmitButton>
             </form>
           )}
         </div>
@@ -137,7 +139,7 @@ export default async function RoundPage({
         </Card>
       )}
 
-      {canEditDraft && (
+      {canEditDraft && isQualificationRound && (
         <section className="grid gap-4 xl:grid-cols-[3fr_1fr]">
           <Card>
             <CardHeader className="flex-row items-start justify-between gap-4 space-y-0 p-4">

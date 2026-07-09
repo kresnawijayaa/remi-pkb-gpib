@@ -1,5 +1,5 @@
 export type TournamentStatus = "draft" | "active" | "finished" | "cancelled";
-export type RoundType = "qualification" | "final";
+export type RoundType = "qualification" | "semifinal" | "final";
 export type RoundStatus = "draft" | "active" | "locked" | "cancelled";
 export type TableStatus = "draft" | "submitted" | "locked";
 
@@ -9,6 +9,7 @@ export type Tournament = {
   eventDate: string | null;
   location: string | null;
   status: TournamentStatus;
+  isExhibition: boolean;
   qualificationRoundCount: number;
   playersPerTable: number;
   finalistCount: number;

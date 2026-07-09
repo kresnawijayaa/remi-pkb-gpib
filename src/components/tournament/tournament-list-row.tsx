@@ -91,6 +91,7 @@ export function TournamentListRow({ tournament }: { tournament: Tournament }) {
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <span>{tournament.eventDate ?? "Tanggal belum diisi"} / {tournament.location ?? "Lokasi belum diisi"}</span>
               <Badge>{tournament.status}</Badge>
+              {tournament.isExhibition && <Badge tone="warn">Exhibition</Badge>}
             </div>
           )}
         </div>

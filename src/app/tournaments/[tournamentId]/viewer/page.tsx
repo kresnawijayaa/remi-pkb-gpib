@@ -1,7 +1,7 @@
 import { getRounds, getScoredQualificationPlayers, getTablePlayersByRound, getTables, getTournament } from "@/lib/data";
 import { requireAuth } from "@/lib/auth";
 import { calculateStandings } from "@/lib/tournament/standings";
-import { calculateFinalResults } from "@/lib/tournament/final-results";
+import { calculateExhibitionFinalResults, calculateFinalResults } from "@/lib/tournament/final-results";
 import { ViewerBoard } from "@/components/tournament/viewer-board";
 
 export const dynamic = "force-dynamic";
@@ -12,14 +12,17 @@ export default async function ViewerPage({ params }: { params: Promise<{ tournam
   const [tournament, rounds, scoredRows] = await Promise.all([getTournament(tournamentId), getRounds(tournamentId), getScoredQualificationPlayers(tournamentId)]);
   if (!tournament) return <main className="p-8">Turnamen tidak ditemukan.</main>;
   const activeRound = rounds.find((round) => round.status === "active") ?? rounds.at(-1);
-  const tables = activeRound ? await getTables(activeRound.id) : [];
-  const players = activeRound ? await getTablePlayersByRound(activeRound.id) : [];
+  const [tables, players] = activeRound
+    ? await Promise.all([getTables(activeRound.id), getTablePlayersByRound(activeRound.id)])
+    : [[], []];
   const standings = calculateStandings(scoredRows);
   const tableNameMap = new Map(tables.map((table) => [table.id, table.tableName ?? `Meja ${table.tableNumber}`]));
   const qualificationRankMap = new Map(standings.map((row, index) => [row.participantId, index + 1]));
   const qualificationRowMap = new Map(standings.map((row) => [row.participantId, row]));
   const finalResults = activeRound?.roundType === "final"
-    ? calculateFinalResults(players, qualificationRankMap, qualificationRowMap, tableNameMap)
+    ? tournament.isExhibition
+      ? calculateExhibitionFinalResults(players, tableNameMap)
+      : calculateFinalResults(players, qualificationRankMap, qualificationRowMap, tableNameMap)
     : [];
   const viewerTables = tables.map((table) => ({
     id: table.id,
@@ -55,7 +58,7 @@ export default async function ViewerPage({ params }: { params: Promise<{ tournam
         tournamentId={tournamentId}
         tournamentName={tournament.name}
         roundType={activeRound?.roundType ?? "qualification"}
-        roundLabel={activeRound ? (activeRound.roundType === "final" ? "Final" : `Babak ${activeRound.roundNumber}`) : "Belum ada babak"}
+        roundLabel={activeRound ? (activeRound.roundType === "final" ? "Final" : activeRound.roundType === "semifinal" ? "Semi Final" : `Babak ${activeRound.roundNumber}`) : "Belum ada babak"}
         statusLabel={activeRound?.status ?? "-"}
         tables={viewerTables}
         standings={viewerStandings}

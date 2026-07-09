@@ -86,6 +86,15 @@ export default async function HomePage() {
                   <Label htmlFor="location">Lokasi</Label>
                   <Input id="location" name="location" placeholder="Aula Gereja" />
                 </div>
+                <label className="flex items-start gap-3 border border-border bg-background p-3 text-sm">
+                  <input name="isExhibition" type="checkbox" value="true" className="mt-1" />
+                  <span>
+                    <span className="block font-semibold">Exhibition</span>
+                    <span className="mt-1 block text-muted-foreground">
+                      3 babak penyisihan, lanjut semifinal papan atas/bawah, lalu final papan atas/bawah.
+                    </span>
+                  </span>
+                </label>
                 <SubmitButton size="lg" className="w-full" pendingText="Membuat...">Buat</SubmitButton>
               </form>
             </div>

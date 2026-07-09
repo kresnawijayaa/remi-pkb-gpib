@@ -8,6 +8,7 @@ create table tournaments (
   event_date date null,
   location text null,
   status text not null default 'draft',
+  is_exhibition boolean not null default false,
   qualification_round_count integer not null default 4,
   players_per_table integer not null default 5,
   finalist_count integer not null default 10,
@@ -122,5 +123,15 @@ create table audit_logs (
 );
 
 create index participants_tournament_idx on participants(tournament_id);
+create index participants_tournament_community_idx on participants(tournament_id, community_id);
+create index communities_tournament_name_idx on communities(tournament_id, name);
+create index rounds_tournament_type_number_idx on rounds(tournament_id, round_type, round_number);
+create index rounds_tournament_status_idx on rounds(tournament_id, status);
+create index match_tables_round_table_idx on match_tables(round_id, table_number);
+create index match_tables_tournament_status_idx on match_tables(tournament_id, status);
 create index table_players_round_idx on table_players(round_id);
+create index table_players_round_table_idx on table_players(round_id, table_id, seat_number);
 create index table_players_tournament_idx on table_players(tournament_id);
+create index table_players_tournament_participant_idx on table_players(tournament_id, participant_id);
+create index table_players_tournament_round_score_idx on table_players(tournament_id, round_id) where score is not null;
+create index finalists_tournament_idx on finalists(tournament_id);

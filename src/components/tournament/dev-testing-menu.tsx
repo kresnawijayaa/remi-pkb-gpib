@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   seedFinalSimulationScoresAction,
   seedRoundSimulationScoresAction,
@@ -31,6 +31,7 @@ const actionMap = {
 };
 
 const developerPin = "0999";
+const rotationCookieName = "remi_rotation_algorithm";
 
 export function DevTestingMenu({
   tournamentId,
@@ -45,10 +46,15 @@ export function DevTestingMenu({
   const [unlocked, setUnlocked] = useState(false);
   const [pin, setPin] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
+  const [optimizedRotation, setOptimizedRotation] = useState(true);
   const [selectedKind, setSelectedKind] = useState<DevActionKind | null>(actions[0]?.kind ?? null);
   const selectedAction = actions.find((action) => action.kind === selectedKind) ?? actions[0];
   const selectedNeedsRound = selectedAction?.kind === "roundScores" || selectedAction?.kind === "finalScores";
   const isDisabled = Boolean(selectedAction?.disabled || (selectedNeedsRound && !roundId));
+
+  useEffect(() => {
+    setOptimizedRotation(!document.cookie.split("; ").includes(`${rotationCookieName}=random`));
+  }, []);
 
   if (actions.length === 0) return null;
 
@@ -63,6 +69,11 @@ export function DevTestingMenu({
 
     setPinError(null);
     setUnlocked(true);
+  }
+
+  function updateRotationMode(enabled: boolean) {
+    setOptimizedRotation(enabled);
+    document.cookie = `${rotationCookieName}=${enabled ? "optimized" : "random"}; path=/; max-age=43200; SameSite=Lax`;
   }
 
   return (
@@ -104,6 +115,29 @@ export function DevTestingMenu({
                 <div className="mt-1 text-xs text-muted-foreground">Aksi simulasi hanya untuk development/debug.</div>
               </div>
               <div className="grid gap-3 p-3">
+                <div className="border border-border bg-background p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold">Algoritma rotasi</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {optimizedRotation
+                          ? "Shuffle memakai pola optimasi."
+                          : "Shuffle dibuat acak untuk demo pembanding."}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => updateRotationMode(!optimizedRotation)}
+                      className={cn(
+                        "min-w-16 border border-border px-3 py-1 text-xs font-semibold transition active:translate-y-px",
+                        optimizedRotation ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                      )}
+                    >
+                      {optimizedRotation ? "ON" : "OFF"}
+                    </button>
+                  </div>
+                </div>
+
                 <div className="grid gap-1">
                   {actions.map((action) => (
                     <button

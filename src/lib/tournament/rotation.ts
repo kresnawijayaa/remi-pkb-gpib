@@ -13,6 +13,7 @@ export type PreviousTable = {
 
 export type GeneratedTable = {
   tableNumber: number;
+  tableName?: string;
   players: RotationParticipant[];
 };
 

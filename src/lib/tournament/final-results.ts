@@ -11,6 +11,7 @@ export type FinalResultRow = {
   qualificationPoint: number;
   qualificationScore: number;
   position: number;
+  boardName?: string;
 };
 
 export function calculateFinalResults(
@@ -44,4 +45,30 @@ export function calculateFinalResults(
       ...row,
       position: index + 1,
     }));
+}
+
+export function calculateExhibitionFinalResults(players: TablePlayer[], tableNameMap: Map<string, string>): FinalResultRow[] {
+  return players
+    .filter((player) => player.score !== null && player.tableRank !== null && player.tableRank <= 3)
+    .map((player) => {
+      const tableName = tableNameMap.get(player.tableId) ?? "Final";
+      return {
+        participantId: player.participantId,
+        name: player.participantName,
+        communityName: player.communityName,
+        tableName,
+        tableRank: player.tableRank ?? 999,
+        score: player.score ?? 0,
+        qualificationRank: 0,
+        qualificationPoint: 0,
+        qualificationScore: 0,
+        position: player.tableRank ?? 999,
+        boardName: tableName.replace(/^Final\s*/i, "") || tableName,
+      };
+    })
+    .sort((a, b) => {
+      if (a.tableName !== b.tableName) return a.tableName.localeCompare(b.tableName);
+      if (a.tableRank !== b.tableRank) return a.tableRank - b.tableRank;
+      return b.score - a.score;
+    });
 }

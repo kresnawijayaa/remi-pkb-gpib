@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export function ViewerLinkModal({ viewerPath }: { viewerPath: string }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [viewerUrl, setViewerUrl] = useState(viewerPath);
   const [copied, setCopied] = useState(false);
@@ -12,6 +14,10 @@ export function ViewerLinkModal({ viewerPath }: { viewerPath: string }) {
   useEffect(() => {
     setViewerUrl(new URL(viewerPath, window.location.origin).toString());
   }, [viewerPath]);
+
+  useEffect(() => {
+    router.prefetch(viewerPath);
+  }, [router, viewerPath]);
 
   async function copyLink() {
     await navigator.clipboard.writeText(viewerUrl);
