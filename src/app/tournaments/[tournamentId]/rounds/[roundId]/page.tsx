@@ -1,11 +1,13 @@
 import Link from "next/link";
 import {
   activateRoundAction,
+  generateFinalAction,
+  generateRoundAction,
   lockRoundAction,
   reshuffleDraftRoundAction,
   swapParticipantsAction,
 } from "@/app/actions";
-import { getRound, getTables, getTablePlayersByRound, getTournament } from "@/lib/data";
+import { getRound, getRounds, getTables, getTablePlayersByRound, getTournament } from "@/lib/data";
 import { requireAuth } from "@/lib/auth";
 import type { RotationWarningSummary } from "@/types/tournament";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -26,15 +28,31 @@ export default async function RoundPage({
   await requireAuth();
   const { tournamentId, roundId } = await params;
   const query = await searchParams;
-  const [tournament, round, tables, players] = await Promise.all([
+  const [tournament, round, rounds, tables, players] = await Promise.all([
     getTournament(tournamentId),
     getRound(roundId),
+    getRounds(tournamentId),
     getTables(roundId),
     getTablePlayersByRound(roundId),
   ]);
 
   if (!tournament || !round) return <main className="p-8">Babak tidak ditemukan.</main>;
   const roundLabel = round.roundType === "semifinal" ? "Semi Final" : `Babak ${round.roundNumber}`;
+  const qualificationRounds = rounds.filter((item) => item.roundType === "qualification");
+  const lockedQualificationCount = qualificationRounds.filter((item) => item.status === "locked").length;
+  const qualificationRoundTarget = tournament.isExhibition ? 3 : tournament.qualificationRoundCount;
+  const semifinalRound = rounds.find((item) => item.roundType === "semifinal");
+  const hasFinalRound = rounds.some((item) => item.roundType === "final");
+  const lastQualificationRound = qualificationRounds.at(-1);
+  const shouldShowNextQualificationStep = qualificationRounds.length < qualificationRoundTarget;
+  const canCreateNextQualification =
+    shouldShowNextQualificationStep &&
+    (!lastQualificationRound || lastQualificationRound.status !== "draft");
+  const finalStepLabel = tournament.isExhibition && !semifinalRound ? "Generate Semi Final" : "Generate Final";
+  const canGenerateFinalStep = tournament.isExhibition
+    ? lockedQualificationCount >= qualificationRoundTarget &&
+      (!semifinalRound || (semifinalRound.status === "locked" && !hasFinalRound))
+    : lockedQualificationCount >= qualificationRoundTarget && !hasFinalRound;
   const isQualificationRound = round.roundType === "qualification";
   const rotationWarnings = normalizeRotationWarnings(round.rotationWarnings);
   const warningsByTable = rotationWarnings.reduce<Record<number, RotationWarningSummary[]>>((map, warning) => {
@@ -99,6 +117,49 @@ export default async function RoundPage({
           Babak belum bisa dikunci. Masih ada {query.missing ?? "beberapa"} data skor atau meja yang belum lengkap.
         </div>
       )}
+
+      <section className="border border-border bg-card p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          {rounds.map((item, index) => (
+            <div key={item.id} className="flex items-center gap-2">
+              {index > 0 && <div className="h-px w-8 bg-border" />}
+              <Link
+                href={item.roundType === "final" ? `/tournaments/${tournamentId}/final` : `/tournaments/${tournamentId}/rounds/${item.id}`}
+                className={[
+                  "grid gap-0.5 text-sm font-semibold underline-offset-4 transition hover:underline active:translate-y-px",
+                  item.id === roundId ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                ].join(" ")}
+              >
+                <span>{getRoundLabel(item)}</span>
+                <span className="text-[11px] font-medium uppercase leading-none text-muted-foreground">
+                  {item.status}
+                </span>
+              </Link>
+            </div>
+          ))}
+          {rounds.length > 0 && <div className="h-px w-8 bg-border" />}
+          {shouldShowNextQualificationStep ? (
+            <form action={generateRoundAction}>
+              <input type="hidden" name="tournamentId" value={tournamentId} />
+              <SubmitButton
+                variant="outline"
+                disabled={!canCreateNextQualification}
+                pendingText="Membuat..."
+                title={!canCreateNextQualification ? "Aktifkan babak draft sebelumnya dulu." : undefined}
+              >
+                Buat Babak {qualificationRounds.length + 1}
+              </SubmitButton>
+            </form>
+          ) : (
+            <form action={generateFinalAction}>
+              <input type="hidden" name="tournamentId" value={tournamentId} />
+              <SubmitButton variant="outline" disabled={!canGenerateFinalStep} pendingText="Membuat...">
+                {finalStepLabel}
+              </SubmitButton>
+            </form>
+          )}
+        </div>
+      </section>
 
       {round.status !== "locked" && (
         <Card>
@@ -307,4 +368,10 @@ function getQualityTone(quality: string | null) {
   if (quality === "FAIR") return "warn";
   if (quality === "NEED_REVIEW") return "danger";
   return "neutral";
+}
+
+function getRoundLabel(round: { roundType: string; roundNumber: number }) {
+  if (round.roundType === "final") return "Final";
+  if (round.roundType === "semifinal") return "Semi Final";
+  return `Babak ${round.roundNumber}`;
 }

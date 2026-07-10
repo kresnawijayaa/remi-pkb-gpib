@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { ViewerRefreshButton } from "@/components/tournament/viewer-refresh-button";
+import { ViewerRoundSelect } from "@/components/tournament/viewer-round-select";
 
 type ViewerTable = {
   id: string;
@@ -45,6 +47,8 @@ type ViewerFinalResult = {
 export function ViewerBoard({
   tournamentId,
   tournamentName,
+  selectedRoundId,
+  roundOptions,
   roundType,
   roundLabel,
   statusLabel,
@@ -54,6 +58,8 @@ export function ViewerBoard({
 }: {
   tournamentId: string;
   tournamentName: string;
+  selectedRoundId: string | null;
+  roundOptions: { id: string; label: string; status: string }[];
   roundType: "qualification" | "semifinal" | "final";
   roundLabel: string;
   statusLabel: string;
@@ -171,7 +177,7 @@ export function ViewerBoard({
         </div>
 
         <div className="flex min-h-0 items-end justify-start">
-          <div>
+          <div className="flex flex-wrap items-end gap-2">
             <div className="border border-background/20 bg-background/[0.03] px-3 py-2">
               <div className="text-[11px] font-semibold uppercase text-background/55">Sedang tampil</div>
               <div className="mt-1 flex flex-wrap items-end gap-3">
@@ -179,6 +185,12 @@ export function ViewerBoard({
                 <div className="text-[11px] font-semibold uppercase text-amber-100">{statusLabel}</div>
               </div>
             </div>
+            <ViewerRoundSelect
+              tournamentId={tournamentId}
+              selectedRoundId={selectedRoundId}
+              rounds={roundOptions}
+            />
+            <ViewerRefreshButton />
           </div>
         </div>
       </div>

@@ -1143,22 +1143,23 @@ export async function generateRoundAction(formData: FormData) {
     from rounds
     where tournament_id = ${tournamentId} and round_type = 'qualification'
   `;
+  const qualificationRoundTarget = tournament.isExhibition ? 3 : tournament.qualificationRoundCount;
 
-  if (Number(nextRoundNumber) > tournament.qualificationRoundCount) {
+  if (Number(nextRoundNumber) > qualificationRoundTarget) {
     redirect(`/tournaments/${tournamentId}/game?error=qualification-round-limit`);
   }
 
   if (Number(nextRoundNumber) > 1) {
-    const [{ unlocked_count: unlockedCount }] = await sql`
-      select count(*)::int as unlocked_count
+    const [{ draft_count: draftCount }] = await sql`
+      select count(*)::int as draft_count
       from rounds
       where tournament_id = ${tournamentId}
         and round_type = 'qualification'
         and round_number = ${Number(nextRoundNumber) - 1}
-        and status <> 'locked'
+        and status = 'draft'
     `;
-    if (Number(unlockedCount) > 0) {
-      redirect(`/tournaments/${tournamentId}/game?error=previous-round-unlocked`);
+    if (Number(draftCount) > 0) {
+      redirect(`/tournaments/${tournamentId}/game?error=previous-round-draft`);
     }
   }
 
@@ -1530,8 +1531,20 @@ export async function generateFinalAction(formData: FormData) {
   if (!tournament) throw new Error("Turnamen tidak ditemukan.");
 
   const standings = calculateStandings(rows);
+  const qualificationRoundTarget = tournament.isExhibition ? 3 : tournament.qualificationRoundCount;
+  const [{ locked_qualification_count: lockedQualificationCount }] = await sql`
+    select count(*)::int as locked_qualification_count
+    from rounds
+    where tournament_id = ${tournamentId}
+      and round_type = 'qualification'
+      and status = 'locked'
+  `;
 
   if (tournament.isExhibition) {
+    if (Number(lockedQualificationCount) < qualificationRoundTarget) {
+      redirect(`/tournaments/${tournamentId}/game?error=qualification-incomplete`);
+    }
+
     const [semifinalRound] = await sql`
       select id, status
       from rounds

@@ -30,20 +30,21 @@ export default async function GamePage({
 
   const qualificationRounds = rounds.filter((round) => round.roundType === "qualification");
   const lockedQualificationCount = rounds.filter((round) => round.roundType === "qualification" && round.status === "locked").length;
+  const qualificationRoundTarget = tournament.isExhibition ? 3 : tournament.qualificationRoundCount;
   const activeRound = rounds.find((round) => round.status === "active") ?? rounds.find((round) => round.status === "draft") ?? rounds.at(-1);
-  const qualificationLimitReached = qualificationRounds.length >= tournament.qualificationRoundCount;
-  const hasUnlockedQualificationRound = qualificationRounds.some((round) => round.status !== "locked");
+  const qualificationLimitReached = qualificationRounds.length >= qualificationRoundTarget;
+  const hasDraftQualificationRound = qualificationRounds.some((round) => round.status === "draft");
   const semifinalRound = rounds.find((round) => round.roundType === "semifinal");
   const hasFinalRound = rounds.some((round) => round.roundType === "final");
   const lastRoundId = rounds.at(-1)?.id ?? null;
   const nextRoundButtonLabel = qualificationRounds.length > 0 ? "Buat Babak Berikutnya" : "Buat Babak Pertama";
   const finalButtonLabel = tournament.isExhibition && !semifinalRound ? "Generate Semi Final" : "Generate Final";
   const canGenerateExhibitionStep = tournament.isExhibition
-    ? lockedQualificationCount >= tournament.qualificationRoundCount &&
+    ? lockedQualificationCount >= qualificationRoundTarget &&
       (!semifinalRound || (semifinalRound.status === "locked" && !hasFinalRound))
-    : lockedQualificationCount >= tournament.qualificationRoundCount && !hasFinalRound;
-  const cannotGenerateRoundReason = hasUnlockedQualificationRound
-    ? "Kunci babak berjalan dulu."
+    : lockedQualificationCount >= qualificationRoundTarget && !hasFinalRound;
+  const cannotGenerateRoundReason = hasDraftQualificationRound
+    ? "Aktifkan babak draft dulu."
     : qualificationLimitReached
       ? "Penyisihan sudah lengkap."
       : null;
@@ -135,9 +136,10 @@ export default async function GamePage({
 }
 
 function getTournamentNotice(error?: string) {
-  if (error === "previous-round-unlocked") return "Babak berikutnya belum bisa dibuat. Kunci babak penyisihan yang sedang berjalan dulu.";
+  if (error === "previous-round-draft" || error === "previous-round-unlocked") return "Babak berikutnya belum bisa dibuat. Aktifkan babak draft sebelumnya dulu.";
   if (error === "not-enough-participants") return "Minimal 10 peserta aktif diperlukan untuk membuat babak.";
   if (error === "qualification-round-limit") return "Jumlah babak penyisihan sudah mencapai batas. Lanjutkan dengan Generate Final.";
+  if (error === "qualification-incomplete") return "Semi final belum bisa dibuat. Semua babak penyisihan harus dikunci dulu.";
   if (error === "semifinal-unlocked") return "Final belum bisa dibuat. Kunci semi final dulu.";
   return null;
 }
