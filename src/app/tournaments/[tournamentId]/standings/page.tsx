@@ -118,7 +118,7 @@ export default async function StandingsPage({
                     {tournament.isExhibition
                       ? index < 10
                         ? <Badge tone="good" className="ml-2">Zona Semi Atas</Badge>
-                        : index < 35
+                        : index < 20
                           ? <Badge tone="warn" className="ml-2">Zona Semi Bawah</Badge>
                           : null
                       : index < tournament.finalistCount && <Badge tone="good" className="ml-2">Zona Final</Badge>}

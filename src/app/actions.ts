@@ -1592,30 +1592,12 @@ export async function generateFinalAction(formData: FormData) {
 
     const semifinalPlayers = await getScoredRoundPlayers(String(semifinalRound.id));
     const upperPlayers = semifinalPlayers.filter((player) => player.tableName?.startsWith("Semi Atas"));
-    const lowerWinners = semifinalPlayers
-      .filter((player) => player.tableName?.startsWith("Semi Bawah") && player.tableRank === 1)
-      .sort((a, b) => (a.tableNumber ?? 999) - (b.tableNumber ?? 999));
+    const lowerPlayers = semifinalPlayers.filter((player) => player.tableName?.startsWith("Semi Bawah"));
     const upperSemifinalStandings = calculateStandings(upperPlayers);
+    const lowerSemifinalStandings = calculateStandings(lowerPlayers);
     const finalTables = generateExhibitionFinalTables({
       upperSemifinalStandings,
-      lowerWinners: lowerWinners.map((player) => ({
-        participantId: player.participantId,
-        participantNumber: player.participantNumber,
-        name: player.participantName,
-        communityName: player.communityName,
-        totalPoint: player.tournamentPoint ?? 999,
-        totalScore: player.score ?? 0,
-        firstPlaceCount: player.tableRank === 1 ? 1 : 0,
-        secondPlaceCount: player.tableRank === 2 ? 1 : 0,
-        thirdPlaceCount: player.tableRank === 3 ? 1 : 0,
-        rounds: {
-          1: {
-            score: player.score ?? 0,
-            tableRank: player.tableRank ?? 999,
-            tournamentPoint: player.tournamentPoint ?? 999,
-          },
-        },
-      })),
+      lowerSemifinalStandings,
     });
 
     const [round] = await sql`

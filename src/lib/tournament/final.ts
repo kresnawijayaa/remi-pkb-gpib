@@ -29,10 +29,10 @@ function toPlayer(row: StandingRow) {
 
 export function generateExhibitionSemifinalTables(standings: StandingRow[]) {
   const upper = standings.slice(0, 10);
-  const lower = standings.slice(10, 35);
+  const lower = standings.slice(10, 20);
 
-  if (upper.length < 10 || lower.length < 25) {
-    throw new Error("Exhibition membutuhkan minimal 35 peserta dengan skor penyisihan lengkap.");
+  if (upper.length < 10 || lower.length < 10) {
+    throw new Error("Exhibition membutuhkan minimal 20 peserta dengan skor penyisihan lengkap.");
   }
 
   const upperTables = [
@@ -48,31 +48,31 @@ export function generateExhibitionSemifinalTables(standings: StandingRow[]) {
     },
   ];
 
-  const lowerTables = Array.from({ length: 5 }, (_, index) => ({
-    tableNumber: index + 3,
-    tableName: `Semi Bawah ${index + 1}`,
-    players: [] as ReturnType<typeof toPlayer>[],
-  }));
-
-  lower.forEach((player, index) => {
-    const row = Math.floor(index / 5);
-    const column = index % 5;
-    const tableIndex = row % 2 === 0 ? column : 4 - column;
-    lowerTables[tableIndex].players.push(toPlayer(player));
-  });
+  const lowerTables = [
+    {
+      tableNumber: 3,
+      tableName: "Semi Bawah A",
+      players: [lower[0], lower[3], lower[4], lower[7], lower[8]].map(toPlayer),
+    },
+    {
+      tableNumber: 4,
+      tableName: "Semi Bawah B",
+      players: [lower[1], lower[2], lower[5], lower[6], lower[9]].map(toPlayer),
+    },
+  ];
 
   return [...upperTables, ...lowerTables];
 }
 
 export function generateExhibitionFinalTables({
   upperSemifinalStandings,
-  lowerWinners,
+  lowerSemifinalStandings,
 }: {
   upperSemifinalStandings: StandingRow[];
-  lowerWinners: StandingRow[];
+  lowerSemifinalStandings: StandingRow[];
 }) {
   const upperFinalists = upperSemifinalStandings.slice(0, 5);
-  const lowerFinalists = lowerWinners.slice(0, 5);
+  const lowerFinalists = lowerSemifinalStandings.slice(0, 5);
 
   if (upperFinalists.length < 5 || lowerFinalists.length < 5) {
     throw new Error("Data semifinal belum cukup untuk membuat final exhibition.");
