@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { loginAction } from "@/app/actions";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthEnabled, isAuthenticated } from "@/lib/auth";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  if (!isAuthEnabled()) redirect("/");
   if (await isAuthenticated()) redirect("/");
 
   const query = await searchParams;

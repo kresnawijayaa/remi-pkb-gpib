@@ -3,6 +3,7 @@ import { activateRoundAction, lockFinalAction, swapParticipantsAction } from "@/
 import { getRounds, getScoredQualificationPlayers, getTablePlayersByRound, getTables, getTournament } from "@/lib/data";
 import { requireAuth } from "@/lib/auth";
 import { calculateStandings } from "@/lib/tournament/standings";
+import { filterQualificationRowsForTournament } from "@/lib/tournament/qualification";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +33,7 @@ export default async function FinalPage({
     ? await Promise.all([getTables(finalRound.id), getTablePlayersByRound(finalRound.id)])
     : [[], []];
   const tableNumberById = new Map(tables.map((table) => [table.id, table.tableNumber]));
-  const qualificationStandings = calculateStandings(qualificationRows);
+  const qualificationStandings = calculateStandings(filterQualificationRowsForTournament(qualificationRows, tournament));
   const qualificationRankMap = new Map(qualificationStandings.map((row, index) => [row.participantId, index + 1]));
   const qualificationRowMap = new Map(qualificationStandings.map((row) => [row.participantId, row]));
   const playersByTableId = new Map(

@@ -1,6 +1,6 @@
 import { createTournamentAction, logoutAction } from "@/app/actions";
 import { getTournaments } from "@/lib/data";
-import { requireAuth } from "@/lib/auth";
+import { isAuthEnabled, requireAuth } from "@/lib/auth";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   await requireAuth();
+  const authEnabled = isAuthEnabled();
   const tournaments = await getTournaments();
 
   return (
@@ -18,11 +19,13 @@ export default async function HomePage() {
         <div className="max-w-3xl">
           <div className="mb-3 flex flex-wrap items-center gap-4 text-sm font-semibold uppercase text-muted-foreground">
             <span>Persekutuan Kaum Bapak</span>
-            <form action={logoutAction}>
-              <SubmitButton variant="ghost" size="sm" pendingText="Keluar...">
-                Keluar
-              </SubmitButton>
-            </form>
+            {authEnabled && (
+              <form action={logoutAction}>
+                <SubmitButton variant="ghost" size="sm" pendingText="Keluar...">
+                  Keluar
+                </SubmitButton>
+              </form>
+            )}
           </div>
           <h1 className="text-4xl font-semibold leading-tight md:text-5xl xl:text-6xl">Panel turnamen Remi 13</h1>
         </div>

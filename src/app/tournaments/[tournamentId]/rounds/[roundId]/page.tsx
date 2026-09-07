@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScoreModal } from "@/components/tournament/score-modal";
 import { DevTestingMenu } from "@/components/tournament/dev-testing-menu";
+import { getQualificationRoundTarget } from "@/lib/tournament/qualification";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export default async function RoundPage({
   const roundLabel = round.roundType === "semifinal" ? "Semi Final" : `Babak ${round.roundNumber}`;
   const qualificationRounds = rounds.filter((item) => item.roundType === "qualification");
   const lockedQualificationCount = qualificationRounds.filter((item) => item.status === "locked").length;
-  const qualificationRoundTarget = tournament.isExhibition ? 3 : tournament.qualificationRoundCount;
+  const qualificationRoundTarget = getQualificationRoundTarget(tournament);
   const semifinalRound = rounds.find((item) => item.roundType === "semifinal");
   const hasFinalRound = rounds.some((item) => item.roundType === "final");
   const lastQualificationRound = qualificationRounds.at(-1);

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getRounds, getScoredQualificationPlayers, getTablePlayersByRound, getTables, getTournament, getTournamentSummary } from "@/lib/data";
 import { requireAuth } from "@/lib/auth";
 import { calculateStandings } from "@/lib/tournament/standings";
+import { filterQualificationRowsForTournament } from "@/lib/tournament/qualification";
 import { calculateExhibitionFinalResults, calculateFinalResults } from "@/lib/tournament/final-results";
 import { Badge } from "@/components/ui/badge";
 import { TournamentSectionShell } from "@/components/tournament/tournament-section-shell";
@@ -27,7 +28,7 @@ export default async function StandingsPage({
     getRounds(tournamentId),
   ]);
   if (!tournament) return <main className="p-8">Turnamen tidak ditemukan.</main>;
-  const standings = calculateStandings(rows);
+  const standings = calculateStandings(filterQualificationRowsForTournament(rows, tournament));
   const semifinalRound = rounds.find((round) => round.roundType === "semifinal");
   const finalRound = rounds.find((round) => round.roundType === "final");
   const [semifinalTables, semifinalPlayers] = activeTab === "semifinal" && semifinalRound

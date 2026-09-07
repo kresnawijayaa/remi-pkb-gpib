@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { generateFinalAction, generateRoundAction } from "@/app/actions";
 import { DeleteRoundForm } from "@/components/tournament/delete-round-form";
+import { getQualificationRoundTarget } from "@/lib/tournament/qualification";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export default async function GamePage({
 
   const qualificationRounds = rounds.filter((round) => round.roundType === "qualification");
   const lockedQualificationCount = rounds.filter((round) => round.roundType === "qualification" && round.status === "locked").length;
-  const qualificationRoundTarget = tournament.isExhibition ? 3 : tournament.qualificationRoundCount;
+  const qualificationRoundTarget = getQualificationRoundTarget(tournament);
   const activeRound = rounds.find((round) => round.status === "active") ?? rounds.find((round) => round.status === "draft") ?? rounds.at(-1);
   const qualificationLimitReached = qualificationRounds.length >= qualificationRoundTarget;
   const hasDraftQualificationRound = qualificationRounds.some((round) => round.status === "draft");
@@ -110,7 +111,7 @@ export default async function GamePage({
                             ? tournament.isExhibition ? "Final papan atas dan papan bawah" : "Penentuan juara"
                             : round.roundType === "semifinal"
                               ? "Semi final papan atas dan papan bawah"
-                              : `Penyisihan ${Math.min(round.roundNumber, tournament.qualificationRoundCount)}/${tournament.qualificationRoundCount}`}
+                              : `Penyisihan ${Math.min(round.roundNumber, qualificationRoundTarget)}/${qualificationRoundTarget}`}
                         </div>
                       </Link>
                       <div className="flex items-center justify-between gap-3 border-t border-border pt-3">

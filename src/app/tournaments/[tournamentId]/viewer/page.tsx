@@ -1,6 +1,7 @@
 import { getRounds, getScoredQualificationPlayers, getTablePlayersByRound, getTables, getTournament } from "@/lib/data";
 import { requireAuth } from "@/lib/auth";
 import { calculateStandings } from "@/lib/tournament/standings";
+import { filterQualificationRowsForTournament } from "@/lib/tournament/qualification";
 import { calculateExhibitionFinalResults, calculateFinalResults } from "@/lib/tournament/final-results";
 import { ViewerBoard } from "@/components/tournament/viewer-board";
 
@@ -23,10 +24,11 @@ export default async function ViewerPage({
   const [tables, players] = activeRound
     ? await Promise.all([getTables(activeRound.id), getTablePlayersByRound(activeRound.id)])
     : [[], []];
+  const qualificationRows = filterQualificationRowsForTournament(scoredRows, tournament);
   const scopedScoredRows =
     activeRound?.roundType === "qualification"
-      ? scoredRows.filter((row) => Number(row.roundNumber ?? 0) <= activeRound.roundNumber)
-      : scoredRows;
+      ? qualificationRows.filter((row) => Number(row.roundNumber ?? 0) <= activeRound.roundNumber)
+      : qualificationRows;
   const standings = calculateStandings(scopedScoredRows);
   const tableNameMap = new Map(tables.map((table) => [table.id, table.tableName ?? `Meja ${table.tableNumber}`]));
   const qualificationRankMap = new Map(standings.map((row, index) => [row.participantId, index + 1]));

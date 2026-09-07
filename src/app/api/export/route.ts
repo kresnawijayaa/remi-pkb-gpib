@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import { getParticipants, getRounds, getScoredQualificationPlayers, getTablePlayersByRound, getTables, getTournament } from "@/lib/data";
 import { isAuthenticated } from "@/lib/auth";
 import { calculateStandings } from "@/lib/tournament/standings";
+import { filterQualificationRowsForTournament } from "@/lib/tournament/qualification";
 import type { MatchTable, TablePlayer, Tournament } from "@/types/tournament";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
     })
   );
   const roundDataByKey = new Map(roundData.map((item) => [`${item.round.roundType}-${item.round.roundNumber}`, item] as const));
-  const standings = calculateStandings(scoredRows);
+  const standings = calculateStandings(filterQualificationRowsForTournament(scoredRows, tournament));
   const workbook = XLSX.utils.book_new();
 
   XLSX.utils.book_append_sheet(workbook, createParticipantsWorksheet(participants), "Peserta");

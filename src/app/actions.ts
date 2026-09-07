@@ -5,12 +5,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { sql } from "@/lib/db";
-import { authCookieName, authCookieValue, requireAuth } from "@/lib/auth";
+import { authCookieName, authCookieValue, isAuthEnabled, requireAuth } from "@/lib/auth";
 import { getParticipants, getPreviousTables, getScoredQualificationPlayers, getTournament } from "@/lib/data";
 import { formatCommunityDisplayName, normalizeCommunityName } from "@/lib/tournament/normalization";
 import { calculateTableRanking } from "@/lib/tournament/scoring";
 import { calculateStandings } from "@/lib/tournament/standings";
 import { generateExhibitionFinalTables, generateExhibitionSemifinalTables, generateFinalTables } from "@/lib/tournament/final";
+import { filterQualificationRowsForTournament, getQualificationRoundTarget } from "@/lib/tournament/qualification";
 import {
   buildMeetingMap,
   calculateRotationPenalty,
@@ -142,6 +143,10 @@ function buildValuesClause(rows: unknown[][], startIndex = 1) {
 }
 
 export async function loginAction(formData: FormData) {
+  if (!isAuthEnabled()) {
+    redirect("/");
+  }
+
   const pin = value(formData, "pin");
 
   if (pin !== requiredEnv("REMI_ADMIN_PIN")) {
@@ -161,6 +166,10 @@ export async function loginAction(formData: FormData) {
 }
 
 export async function logoutAction() {
+  if (!isAuthEnabled()) {
+    redirect("/");
+  }
+
   const cookieStore = await cookies();
   cookieStore.set(authCookieName, "", {
     httpOnly: true,
@@ -1530,8 +1539,8 @@ export async function generateFinalAction(formData: FormData) {
   ]);
   if (!tournament) throw new Error("Turnamen tidak ditemukan.");
 
-  const standings = calculateStandings(rows);
-  const qualificationRoundTarget = tournament.isExhibition ? 3 : tournament.qualificationRoundCount;
+  const standings = calculateStandings(filterQualificationRowsForTournament(rows, tournament));
+  const qualificationRoundTarget = getQualificationRoundTarget(tournament);
   const [{ locked_qualification_count: lockedQualificationCount }] = await sql`
     select count(*)::int as locked_qualification_count
     from rounds
