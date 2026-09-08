@@ -97,7 +97,7 @@ export function TournamentListRow({ tournament }: { tournament: Tournament }) {
         </div>
 
         <div className="flex flex-wrap gap-2 md:justify-end">
-          <Link className={buttonClass({ variant: "outline" })} href={`/tournaments/${tournament.id}`}>
+          <Link className={buttonClass({ variant: "outline" })} href={`/tournaments-old/${tournament.id}`}>
             Buka
           </Link>
           {!editing ? (

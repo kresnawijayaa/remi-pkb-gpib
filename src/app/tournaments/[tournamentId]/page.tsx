@@ -1,67 +1,34 @@
 import Link from "next/link";
-import { getTournament, getTournamentSummary } from "@/lib/data";
-import { requireAuth } from "@/lib/auth";
-import { buttonClass } from "@/components/ui/button";
-import { TournamentSectionShell } from "@/components/tournament/tournament-section-shell";
+import { notFound } from "next/navigation";
+import { DevTools } from "@/components/flexible/dev-tools";
+import { ActionForm, Confirm, SendButton } from "@/components/flexible/form";
+import { Participants } from "@/components/flexible/participants";
+import { SettingsFields } from "@/components/flexible/settings";
+import { ShareLink } from "@/components/flexible/share-link";
+import { SetupNotice } from "@/components/flexible/shell";
+import { getEvent } from "@/lib/flexible/store";
+import { expectedTableCount, scoringComplete } from "@/lib/flexible/scoring";
 
-export const dynamic = "force-dynamic";
-
-export default async function TournamentPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ tournamentId: string }>;
-  searchParams: Promise<{ error?: string }>;
-}) {
-  await requireAuth();
+export default async function EventPage({ params }: { params: Promise<{ tournamentId: string }> }) {
   const { tournamentId } = await params;
-  const query = await searchParams;
-  const [tournament, summary] = await Promise.all([getTournament(tournamentId), getTournamentSummary(tournamentId)]);
-  const notice = getTournamentNotice(query.error);
-
-  if (!tournament) return <main className="p-8">Turnamen tidak ditemukan.</main>;
-
-  return (
-    <TournamentSectionShell tournamentId={tournamentId} tournament={tournament} summary={summary} activeSection="dashboard">
-      {notice && <div className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">{notice}</div>}
-      <section className="grid gap-4 lg:grid-cols-[1fr_300px]">
-        <div className="border border-border bg-card p-4">
-          <h2 className="text-xl font-semibold">Dashboard turnamen</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Akses cepat ke data peserta, komunitas, impor, permainan, dan klasemen.
-          </p>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <Link href={`/tournaments/${tournamentId}/participants`} className={buttonClass({ variant: "outline", className: "justify-start" })}>
-              Peserta
-            </Link>
-            <Link href={`/tournaments/${tournamentId}/communities`} className={buttonClass({ variant: "outline", className: "justify-start" })}>
-              Komunitas
-            </Link>
-            <Link href={`/tournaments/${tournamentId}/import`} className={buttonClass({ variant: "outline", className: "justify-start" })}>
-              Import CSV
-            </Link>
-            <Link href={`/tournaments/${tournamentId}/game`} className={buttonClass({ variant: "outline", className: "justify-start" })}>
-              Permainan
-            </Link>
-            <Link href={`/tournaments/${tournamentId}/standings`} className={buttonClass({ variant: "outline", className: "justify-start" })}>
-              Top klasemen
-            </Link>
-          </div>
-        </div>
-        <div className="border border-border bg-card p-4 text-sm text-muted-foreground">
-          <div className="font-semibold text-foreground">Catatan</div>
-          <div className="mt-2">Halaman ini sudah dipisah per menu supaya fetch data lebih ringan.</div>
-          <div className="mt-2">Gunakan menu kiri untuk masuk ke data yang dibutuhkan.</div>
-        </div>
-      </section>
-    </TournamentSectionShell>
-  );
-}
-
-function getTournamentNotice(error?: string) {
-  if (error === "previous-round-unlocked") return "Babak berikutnya belum bisa dibuat. Kunci babak penyisihan yang sedang berjalan dulu.";
-  if (error === "not-enough-participants") return "Minimal 10 peserta aktif diperlukan untuk membuat babak.";
-  if (error === "qualification-round-limit") return "Jumlah babak penyisihan sudah mencapai batas. Lanjutkan dengan Generate Final.";
-  return null;
+  let event;
+  try { event = await getEvent(tournamentId); } catch { return <SetupNotice />; }
+  if (!event) notFound();
+  const { settings, draws, participants } = event.data;
+  const locked = draws.filter(draw => draw.locked).length;
+  const expectedResults = expectedTableCount(event.data);
+  const scoresComplete = scoringComplete(event.data);
+  const status = event.data.qualificationLockedAt ? "HASIL DIKUNCI / SELESAI" : scoresComplete ? "SKOR LENGKAP / PERIKSA KELOLOSAN" : event.data.results.length ? "PERTANDINGAN BERJALAN" : locked === settings.rounds ? "SIAP DIMAINKAN" : "DALAM PERSIAPAN";
+  const description = event.data.qualificationLockedAt ? `${event.data.qualifiedIds.length} peserta lolos sudah dikunci. Turnamen ini siap dijadikan arsip hasil.` : scoresComplete ? "Seluruh skor sudah masuk. Periksa klasemen lalu kunci peserta yang lolos." : event.data.results.length ? `${event.data.results.length} dari ${expectedResults} hasil meja sudah masuk.` : locked === settings.rounds ? "Seluruh pembagian sudah dikunci. Pertandingan dan input skor dapat dimulai." : "Lengkapi peserta dan kunci pembagian meja sebelum pertandingan.";
+  const next = event.data.qualificationLockedAt || scoresComplete ? { title: event.data.qualificationLockedAt ? "Hasil akhir" : "Klasemen dan kelolosan", detail: event.data.qualificationLockedAt ? "Kelolosan telah dikunci dan tahap lanjutan dapat dibuat." : "Semua hasil meja sudah lengkap. Periksa klasemen sebelum mengunci peserta yang lolos.", href: `/tournaments/${event.id}/standings`, label: "Buka klasemen →" } : locked === settings.rounds || event.data.results.length ? { title: "Input skor", detail: `${event.data.results.length}/${expectedResults} hasil meja sudah masuk.`, href: `/tournaments/${event.id}/game`, label: "Buka input skor →" } : { title: "Pembagian meja", detail: `${Math.max(0, settings.target - participants.length)} nama lagi sebelum pembagian dapat dibuat. Kapasitas maksimal ${settings.capacity} orang per meja.`, href: `/tournaments/${event.id}/draws`, label: "Buka pembagian meja →" };
+  return <><Link className="neo-back" href="/tournaments">← Semua turnamen</Link><header className="neo-page-heading"><span className="neo-eyebrow">{status}</span><h1>{settings.name}</h1><p>{description}</p></header>
+    <div className="neo-progress"><span><b>01</b> Peserta <strong>{participants.length}/{settings.target}</strong></span><span><b>02</b> Pembagian dikunci <strong>{locked}/{settings.rounds}</strong></span><span><b>03</b> Hasil meja <strong>{event.data.results.length}/{expectedResults}</strong></span></div>
+    <div className="neo-two-col"><Participants event={event} /><aside className="neo-stack"><section className="neo-panel neo-yellow"><span className="neo-eyebrow">LANGKAH BERIKUTNYA</span><h2>{next.title.split("\n").map((line, index) => <span key={line}>{index > 0 && <br />}{line}</span>)}</h2><p>{next.detail}</p><Link className="neo-button neo-dark" href={next.href}>{next.label}</Link></section>
+      <section className="neo-panel"><h2>Master komunitas</h2><p>{event.data.communities.length} komunitas / sektor terdaftar. Peserta manual memilih dari daftar ini.</p><Link className="neo-button neo-secondary" href={`/tournaments/${event.id}/communities`}>Kelola komunitas →</Link></section>
+      <section className="neo-panel"><h2>Bagikan tanpa skor</h2><p>Hanya nama, komunitas, meja, dan babak terkunci. Siapa pun yang memiliki link bisa melihatnya.</p>{event.shareToken && <ShareLink token={event.shareToken} />}<ActionForm eventId={event.id} version={event.version} operation="share">{event.shareToken && <Confirm>Link lama akan berhenti berlaku.</Confirm>}<SendButton secondary disabled={locked === 0}>{event.shareToken ? "Ganti link" : "Buat link pembagian"}</SendButton></ActionForm>{event.shareToken && <details className="neo-disclosure"><summary>Cabut akses publik</summary><ActionForm eventId={event.id} version={event.version} operation="revoke"><Confirm>Nonaktifkan link yang sudah dibagikan.</Confirm><SendButton secondary>Cabut link</SendButton></ActionForm></details>}</section>
+      <section className="neo-panel"><h2>Jalankan pertandingan</h2><p><strong>{event.data.results.length} hasil meja</strong> sudah masuk. Input skor tersedia setelah pembagian babak dikunci.</p><div className="neo-actions"><Link className="neo-button" href={`/tournaments/${event.id}/game`}>Input skor →</Link><Link className="neo-button neo-secondary" href={`/tournaments/${event.id}/standings`}>Klasemen →</Link></div></section>
+      <section className="neo-panel"><h2>Rencana kelolosan</h2><p><strong>{settings.advancing} dari {settings.target} peserta</strong> ditargetkan lolos. Setelah seluruh skor lengkap, peserta teratas dapat dikunci dan dibawa ke turnamen baru.</p></section></aside></div>
+    <details className="neo-panel neo-disclosure"><summary>Ubah pengaturan turnamen</summary><ActionForm eventId={event.id} version={event.version} operation="settings"><SettingsFields initial={settings} /><label className="neo-check"><input type="checkbox" name="confirm" value="yes" /><span>Saya memahami perubahan jumlah babak atau format dapat membuang draft pembagian yang terdampak. Babak terkunci harus dibuka terlebih dahulu.</span></label><SendButton>Simpan pengaturan</SendButton></ActionForm></details>
+    {process.env.REMI_DEV_TOOLS_ENABLED === "true" && participants.length < settings.target && <DevTools eventId={event.id} version={event.version} remaining={settings.target - participants.length} />}
+    <details className="neo-panel neo-disclosure"><summary>Riwayat persiapan</summary><ol className="neo-audit">{event.data.audit.slice(-30).reverse().map((entry, index) => <li key={`${entry.at}-${index}`}><time>{entry.at.replace("T", " ").slice(0, 19)} UTC</time><span>{entry.action}</span></li>)}</ol></details></>;
 }

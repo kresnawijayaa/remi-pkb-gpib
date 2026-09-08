@@ -20,7 +20,7 @@ export default async function ScorePage({ params }: { params: Promise<{ tableId:
   return (
     <main className="app-container grid gap-8 py-8">
       <header className="border-b border-border pb-6">
-        <Link href={`/tournaments/${table.tournamentId}/rounds/${table.roundId}`} className="text-sm font-semibold text-primary">&larr; Kembali ke babak</Link>
+        <Link href={`/tournaments-old/${table.tournamentId}/rounds/${table.roundId}`} className="text-sm font-semibold text-primary">&larr; Kembali ke babak</Link>
         <h1 className="mt-3 text-4xl font-semibold">{table.tableName ?? `Meja ${table.tableNumber}`}</h1>
         <p className="mt-2 text-muted-foreground">Masukkan total skor akhir. Rank meja dihitung otomatis.</p>
       </header>

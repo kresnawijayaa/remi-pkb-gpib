@@ -69,7 +69,7 @@ export default async function FinalPage({
   return (
     <main className="app-container grid h-[100dvh] min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden py-3">
       <header className="border-b border-border pb-3">
-        <Link href={`/tournaments/${tournamentId}`} className="text-sm font-semibold text-primary">&larr; Dashboard</Link>
+        <Link href={`/tournaments-old/${tournamentId}`} className="text-sm font-semibold text-primary">&larr; Dashboard</Link>
         <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
           <h1 className="text-4xl font-semibold">Final</h1>
           <div className="text-sm text-muted-foreground">

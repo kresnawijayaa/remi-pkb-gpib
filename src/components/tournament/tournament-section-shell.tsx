@@ -7,12 +7,12 @@ import type { Tournament } from "@/types/tournament";
 type SectionKey = "dashboard" | "participants" | "communities" | "import" | "game" | "standings";
 
 const navItems: { key: SectionKey; label: string; href: (tournamentId: string) => string }[] = [
-  { key: "dashboard", label: "Dashboard", href: (tournamentId) => `/tournaments/${tournamentId}` },
-  { key: "participants", label: "Peserta", href: (tournamentId) => `/tournaments/${tournamentId}/participants` },
-  { key: "communities", label: "Komunitas", href: (tournamentId) => `/tournaments/${tournamentId}/communities` },
-  { key: "import", label: "Import CSV", href: (tournamentId) => `/tournaments/${tournamentId}/import` },
-  { key: "game", label: "Permainan", href: (tournamentId) => `/tournaments/${tournamentId}/game` },
-  { key: "standings", label: "Top klasemen", href: (tournamentId) => `/tournaments/${tournamentId}/standings` },
+  { key: "dashboard", label: "Dashboard", href: (tournamentId) => `/tournaments-old/${tournamentId}` },
+  { key: "participants", label: "Peserta", href: (tournamentId) => `/tournaments-old/${tournamentId}/participants` },
+  { key: "communities", label: "Komunitas", href: (tournamentId) => `/tournaments-old/${tournamentId}/communities` },
+  { key: "import", label: "Import CSV", href: (tournamentId) => `/tournaments-old/${tournamentId}/import` },
+  { key: "game", label: "Permainan", href: (tournamentId) => `/tournaments-old/${tournamentId}/game` },
+  { key: "standings", label: "Top klasemen", href: (tournamentId) => `/tournaments-old/${tournamentId}/standings` },
 ];
 
 export function TournamentSectionShell({
@@ -40,14 +40,14 @@ export function TournamentSectionShell({
     <main className="app-container grid min-w-0 gap-5 py-7 overflow-x-hidden">
       <header className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
-          <Link href="/" className="text-sm font-semibold text-primary">&larr; Semua turnamen</Link>
+          <Link href="/tournaments-old" className="text-sm font-semibold text-primary">&larr; Semua turnamen</Link>
           <h1 className="mt-3 text-4xl font-semibold leading-tight md:text-5xl">{tournament.name}</h1>
           <p className="mt-2 text-muted-foreground">
             {tournament.eventDate ?? "Tanggal belum diisi"} / {tournament.location ?? "Lokasi belum diisi"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2 lg:justify-end">
-          {showViewerButton && <ViewerLinkModal viewerPath={`/tournaments/${tournamentId}/viewer`} />}
+          {showViewerButton && <ViewerLinkModal viewerPath={`/tournaments-old/${tournamentId}/viewer`} />}
           <Link className={buttonClass({ variant: "outline" })} href={`/api/export?tournamentId=${tournamentId}`}>
             Export Excel
           </Link>

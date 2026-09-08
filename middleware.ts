@@ -1,19 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const authCookieName = "remi_pkb_auth";
-const authCookieValue = "allowed";
+import { authCookieName, isAuthEnabled, verifySession } from "./src/lib/session";
 
-function isAuthEnabled() {
-  return process.env.REMI_AUTH_ENABLED !== "false";
-}
-
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith("/share/")) return NextResponse.next();
   if (!isAuthEnabled()) return NextResponse.next();
 
   const isLoginPage = request.nextUrl.pathname === "/login";
-  const isAuthenticated = request.cookies.get(authCookieName)?.value === authCookieValue;
+  const isAuthenticated = await verifySession(request.cookies.get(authCookieName)?.value);
 
   if (!isAuthenticated && !isLoginPage) {
+    if (request.nextUrl.pathname.startsWith("/api/")) return NextResponse.json({ error: "Sesi berakhir. Silakan masuk kembali." }, { status: 401 });
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

@@ -5,7 +5,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { sql } from "@/lib/db";
-import { authCookieName, authCookieValue, isAuthEnabled, requireAuth } from "@/lib/auth";
+import { authCookieName, isAuthEnabled, requireLegacyWrite } from "@/lib/auth";
+import { createSession } from "@/lib/session";
+import { allowLoginAttempt } from "@/lib/login-limit";
 import { getParticipants, getPreviousTables, getScoredQualificationPlayers, getTournament } from "@/lib/data";
 import { formatCommunityDisplayName, normalizeCommunityName } from "@/lib/tournament/normalization";
 import { calculateTableRanking } from "@/lib/tournament/scoring";
@@ -148,13 +150,14 @@ export async function loginAction(formData: FormData) {
   }
 
   const pin = value(formData, "pin");
+  if (!allowLoginAttempt()) redirect("/login?error=rate");
 
   if (pin !== requiredEnv("REMI_ADMIN_PIN")) {
     redirect("/login?error=pin");
   }
 
   const cookieStore = await cookies();
-  cookieStore.set(authCookieName, authCookieValue, {
+  cookieStore.set(authCookieName, await createSession(), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -649,7 +652,7 @@ async function fillSimulationScoresForRound({
 }
 
 export async function createTournamentAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const parsed = z
     .object({
@@ -670,11 +673,11 @@ export async function createTournamentAction(formData: FormData) {
     values (${parsed.name}, ${parsed.eventDate ?? null}, ${parsed.location ?? null}, ${parsed.isExhibition}, ${parsed.isExhibition ? 3 : 4})
     returning id
   `;
-  redirect(`/tournaments/${row.id}`);
+  redirect(`/tournaments-old/${row.id}`);
 }
 
 export async function updateTournamentAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const parsed = z.object({
     tournamentId: z.string().uuid(),
@@ -701,11 +704,11 @@ export async function updateTournamentAction(formData: FormData) {
   `;
 
   revalidatePath("/");
-  revalidatePath(`/tournaments/${parsed.tournamentId}`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}`);
 }
 
 export async function deleteTournamentAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const parsed = z.object({
     tournamentId: z.string().uuid(),
@@ -722,7 +725,7 @@ export async function deleteTournamentAction(formData: FormData) {
 }
 
 export async function createCommunityAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const tournamentId = value(formData, "tournamentId");
   const name = formatCommunityDisplayName(value(formData, "name"));
@@ -734,12 +737,12 @@ export async function createCommunityAction(formData: FormData) {
     do update set name = excluded.name, updated_at = now()
   `;
 
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/communities`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/communities`);
 }
 
 export async function updateCommunityAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const parsed = z.object({
     tournamentId: z.string().uuid(),
@@ -760,12 +763,12 @@ export async function updateCommunityAction(formData: FormData) {
       and tournament_id = ${parsed.tournamentId}
   `;
 
-  revalidatePath(`/tournaments/${parsed.tournamentId}`);
-  revalidatePath(`/tournaments/${parsed.tournamentId}/communities`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}/communities`);
 }
 
 export async function deleteCommunityAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const parsed = z.object({
     tournamentId: z.string().uuid(),
@@ -781,12 +784,12 @@ export async function deleteCommunityAction(formData: FormData) {
       and tournament_id = ${parsed.tournamentId}
   `;
 
-  revalidatePath(`/tournaments/${parsed.tournamentId}`);
-  revalidatePath(`/tournaments/${parsed.tournamentId}/communities`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}/communities`);
 }
 
 export async function createParticipantAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const tournamentId = value(formData, "tournamentId");
   const communityId = value(formData, "communityId") || null;
@@ -811,12 +814,12 @@ export async function createParticipantAction(formData: FormData) {
       updated_at = now()
   `;
 
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/participants`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/participants`);
 }
 
 export async function updateParticipantAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const tournamentId = value(formData, "tournamentId");
   const participantId = value(formData, "participantId");
@@ -846,12 +849,12 @@ export async function updateParticipantAction(formData: FormData) {
       and tournament_id = ${tournamentId}
   `;
 
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/participants`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/participants`);
 }
 
 export async function deleteParticipantAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const parsed = z.object({
     tournamentId: z.string().uuid(),
@@ -878,12 +881,12 @@ export async function deleteParticipantAction(formData: FormData) {
       and tournament_id = ${parsed.tournamentId}
   `;
 
-  revalidatePath(`/tournaments/${parsed.tournamentId}`);
-  revalidatePath(`/tournaments/${parsed.tournamentId}/participants`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}/participants`);
 }
 
 export async function importParticipantsAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const tournamentId = value(formData, "tournamentId");
   const csv = value(formData, "csv");
@@ -949,13 +952,13 @@ export async function importParticipantsAction(formData: FormData) {
     );
   }
 
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/participants`);
-  revalidatePath(`/tournaments/${tournamentId}/communities`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/participants`);
+  revalidatePath(`/tournaments-old/${tournamentId}/communities`);
 }
 
 export async function seedSimulationCommunitiesAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
   assertDeveloperSimulationPin(formData);
 
   const tournamentId = value(formData, "tournamentId");
@@ -967,12 +970,12 @@ export async function seedSimulationCommunitiesAction(formData: FormData) {
     values (${tournamentId}, 'SIMULATION_COMMUNITIES', 'Mengisi komunitas contoh untuk simulasi.')
   `;
 
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/communities`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/communities`);
 }
 
 export async function seedSimulationParticipantsAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
   assertDeveloperSimulationPin(formData);
 
   const tournamentId = value(formData, "tournamentId");
@@ -1008,13 +1011,13 @@ export async function seedSimulationParticipantsAction(formData: FormData) {
     values (${tournamentId}, 'SIMULATION_PARTICIPANTS', 'Mengisi 50 peserta contoh untuk simulasi.', ${JSON.stringify({ count: simulationNames.length })})
   `;
 
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/participants`);
-  revalidatePath(`/tournaments/${tournamentId}/communities`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/participants`);
+  revalidatePath(`/tournaments-old/${tournamentId}/communities`);
 }
 
 export async function seedSimulationScoresAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
   assertDeveloperSimulationPin(formData);
 
   const tournamentId = value(formData, "tournamentId");
@@ -1037,14 +1040,14 @@ export async function seedSimulationScoresAction(formData: FormData) {
     auditDescription: "Mengisi skor dan ranking manual simulasi untuk semua meja pada babak terakhir.",
   });
 
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/rounds/${round.id}`);
-  revalidatePath(`/tournaments/${tournamentId}/standings`);
-  revalidatePath(`/tournaments/${tournamentId}/viewer`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/rounds/${round.id}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/standings`);
+  revalidatePath(`/tournaments-old/${tournamentId}/viewer`);
 }
 
 export async function seedRoundSimulationScoresAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
   assertDeveloperSimulationPin(formData);
 
   const tournamentId = value(formData, "tournamentId");
@@ -1059,14 +1062,14 @@ export async function seedRoundSimulationScoresAction(formData: FormData) {
     auditDescription: "Mengisi skor dan ranking manual simulasi untuk semua meja pada babak ini.",
   });
 
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/rounds/${roundId}`);
-  revalidatePath(`/tournaments/${tournamentId}/standings`);
-  revalidatePath(`/tournaments/${tournamentId}/viewer`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/rounds/${roundId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/standings`);
+  revalidatePath(`/tournaments-old/${tournamentId}/viewer`);
 }
 
 export async function seedFinalSimulationScoresAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
   assertDeveloperSimulationPin(formData);
 
   const tournamentId = value(formData, "tournamentId");
@@ -1082,13 +1085,13 @@ export async function seedFinalSimulationScoresAction(formData: FormData) {
     requireActive: true,
   });
 
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/final`);
-  revalidatePath(`/tournaments/${tournamentId}/viewer`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/final`);
+  revalidatePath(`/tournaments-old/${tournamentId}/viewer`);
 }
 
 export async function lockFinalAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const tournamentId = value(formData, "tournamentId");
   const roundId = value(formData, "roundId");
@@ -1113,7 +1116,7 @@ export async function lockFinalAction(formData: FormData) {
   `;
 
   if (Number(incompleteCount) > 0) {
-    redirect(`/tournaments/${tournamentId}/final?error=final-incomplete&missing=${Number(incompleteCount)}`);
+    redirect(`/tournaments-old/${tournamentId}/final?error=final-incomplete&missing=${Number(incompleteCount)}`);
   }
 
   await sql`update rounds set status = 'locked', locked_at = now(), updated_at = now() where id = ${roundId}`;
@@ -1124,15 +1127,15 @@ export async function lockFinalAction(formData: FormData) {
     values (${tournamentId}, ${roundId}, 'LOCK_FINAL', 'Admin mengunci final dan menyelesaikan turnamen.')
   `;
 
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/final`);
-  revalidatePath(`/tournaments/${tournamentId}/viewer`);
-  revalidatePath(`/tournaments/${tournamentId}/game`);
-  redirect(`/tournaments/${tournamentId}/final`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/final`);
+  revalidatePath(`/tournaments-old/${tournamentId}/viewer`);
+  revalidatePath(`/tournaments-old/${tournamentId}/game`);
+  redirect(`/tournaments-old/${tournamentId}/final`);
 }
 
 export async function generateRoundAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
   const start = Date.now();
 
   const tournamentId = value(formData, "tournamentId");
@@ -1144,7 +1147,7 @@ export async function generateRoundAction(formData: FormData) {
 
   const participants = (await participantsPromise).filter((participant) => participant.status === "active");
   if (participants.length < 10) {
-    redirect(`/tournaments/${tournamentId}/game?error=not-enough-participants`);
+    redirect(`/tournaments-old/${tournamentId}/game?error=not-enough-participants`);
   }
 
   const [{ next_round_number: nextRoundNumber }] = await sql`
@@ -1155,7 +1158,7 @@ export async function generateRoundAction(formData: FormData) {
   const qualificationRoundTarget = tournament.isExhibition ? 3 : tournament.qualificationRoundCount;
 
   if (Number(nextRoundNumber) > qualificationRoundTarget) {
-    redirect(`/tournaments/${tournamentId}/game?error=qualification-round-limit`);
+    redirect(`/tournaments-old/${tournamentId}/game?error=qualification-round-limit`);
   }
 
   if (Number(nextRoundNumber) > 1) {
@@ -1168,7 +1171,7 @@ export async function generateRoundAction(formData: FormData) {
         and status = 'draft'
     `;
     if (Number(draftCount) > 0) {
-      redirect(`/tournaments/${tournamentId}/game?error=previous-round-draft`);
+      redirect(`/tournaments-old/${tournamentId}/game?error=previous-round-draft`);
     }
   }
 
@@ -1196,12 +1199,12 @@ export async function generateRoundAction(formData: FormData) {
   await insertRoundTables({ tournamentId, roundId: String(round.id), tables: rotation.tables });
 
   logPerf(`generate round ${tournamentId}`, start);
-  revalidatePath(`/tournaments/${tournamentId}/game`);
-  redirect(`/tournaments/${tournamentId}/rounds/${round.id}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/game`);
+  redirect(`/tournaments-old/${tournamentId}/rounds/${round.id}`);
 }
 
 export async function deleteRoundAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const parsed = z.object({
     tournamentId: z.string().uuid(),
@@ -1278,15 +1281,15 @@ export async function deleteRoundAction(formData: FormData) {
     where id = ${parsed.tournamentId}
   `;
 
-  revalidatePath(`/tournaments/${parsed.tournamentId}`);
-  revalidatePath(`/tournaments/${parsed.tournamentId}/standings`);
-  revalidatePath(`/tournaments/${parsed.tournamentId}/final`);
-  revalidatePath(`/tournaments/${parsed.tournamentId}/viewer`);
-  revalidatePath(`/tournaments/${parsed.tournamentId}/game`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}/standings`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}/final`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}/viewer`);
+  revalidatePath(`/tournaments-old/${parsed.tournamentId}/game`);
 }
 
 export async function reshuffleDraftRoundAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
   const start = Date.now();
 
   const tournamentId = value(formData, "tournamentId");
@@ -1341,27 +1344,27 @@ export async function reshuffleDraftRoundAction(formData: FormData) {
   `;
 
   logPerf(`reshuffle round ${roundId}`, start);
-  revalidatePath(`/tournaments/${tournamentId}/game`);
-  revalidatePath(`/tournaments/${tournamentId}/rounds/${roundId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/game`);
+  revalidatePath(`/tournaments-old/${tournamentId}/rounds/${roundId}`);
 }
 
 export async function activateRoundAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const tournamentId = value(formData, "tournamentId");
   const roundId = value(formData, "roundId");
 
   await sql`update rounds set status = 'active', updated_at = now() where id = ${roundId}`;
   await sql`update tournaments set status = 'active', updated_at = now() where id = ${tournamentId}`;
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/game`);
-  revalidatePath(`/tournaments/${tournamentId}/final`);
-  revalidatePath(`/tournaments/${tournamentId}/viewer`);
-  revalidatePath(`/tournaments/${tournamentId}/rounds/${roundId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/game`);
+  revalidatePath(`/tournaments-old/${tournamentId}/final`);
+  revalidatePath(`/tournaments-old/${tournamentId}/viewer`);
+  revalidatePath(`/tournaments-old/${tournamentId}/rounds/${roundId}`);
 }
 
 export async function submitScoresAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
   const start = Date.now();
 
   const tournamentId = value(formData, "tournamentId");
@@ -1425,18 +1428,18 @@ export async function submitScoresAction(formData: FormData) {
 
   await sql`update match_tables set status = 'submitted', submitted_at = now(), updated_at = now() where id = ${tableId}`;
   logPerf(`submit scores ${tableId}`, start);
-  revalidatePath(`/tournaments/${tournamentId}/standings`);
-  revalidatePath(`/tournaments/${tournamentId}/viewer`);
-  revalidatePath(`/tournaments/${tournamentId}/rounds/${roundId}`);
-  revalidatePath(`/tournaments/${tournamentId}/final`);
+  revalidatePath(`/tournaments-old/${tournamentId}/standings`);
+  revalidatePath(`/tournaments-old/${tournamentId}/viewer`);
+  revalidatePath(`/tournaments-old/${tournamentId}/rounds/${roundId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/final`);
   if (round.round_type === "final") {
-    redirect(`/tournaments/${tournamentId}/final`);
+    redirect(`/tournaments-old/${tournamentId}/final`);
   }
-  redirect(`/tournaments/${tournamentId}/rounds/${roundId}`);
+  redirect(`/tournaments-old/${tournamentId}/rounds/${roundId}`);
 }
 
 export async function lockRoundAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const tournamentId = value(formData, "tournamentId");
   const roundId = value(formData, "roundId");
@@ -1450,21 +1453,21 @@ export async function lockRoundAction(formData: FormData) {
   `;
 
   if (Number(incompleteCount) > 0) {
-    redirect(`/tournaments/${tournamentId}/rounds/${roundId}?error=round-incomplete&missing=${Number(incompleteCount)}`);
+    redirect(`/tournaments-old/${tournamentId}/rounds/${roundId}?error=round-incomplete&missing=${Number(incompleteCount)}`);
   }
 
   await sql`update rounds set status = 'locked', locked_at = now(), updated_at = now() where id = ${roundId}`;
   await sql`update match_tables set status = 'locked', updated_at = now() where round_id = ${roundId}`;
-  revalidatePath(`/tournaments/${tournamentId}`);
-  revalidatePath(`/tournaments/${tournamentId}/game`);
-  revalidatePath(`/tournaments/${tournamentId}/standings`);
-  revalidatePath(`/tournaments/${tournamentId}/viewer`);
-  revalidatePath(`/tournaments/${tournamentId}/rounds/${roundId}`);
-  redirect(`/tournaments/${tournamentId}/rounds/${roundId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/game`);
+  revalidatePath(`/tournaments-old/${tournamentId}/standings`);
+  revalidatePath(`/tournaments-old/${tournamentId}/viewer`);
+  revalidatePath(`/tournaments-old/${tournamentId}/rounds/${roundId}`);
+  redirect(`/tournaments-old/${tournamentId}/rounds/${roundId}`);
 }
 
 export async function swapParticipantsAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
 
   const tournamentId = value(formData, "tournamentId");
   const roundId = value(formData, "roundId");
@@ -1523,13 +1526,13 @@ export async function swapParticipantsAction(formData: FormData) {
     });
   }
 
-  revalidatePath(`/tournaments/${tournamentId}/viewer`);
-  revalidatePath(`/tournaments/${tournamentId}/rounds/${roundId}`);
-  revalidatePath(`/tournaments/${tournamentId}/final`);
+  revalidatePath(`/tournaments-old/${tournamentId}/viewer`);
+  revalidatePath(`/tournaments-old/${tournamentId}/rounds/${roundId}`);
+  revalidatePath(`/tournaments-old/${tournamentId}/final`);
 }
 
 export async function generateFinalAction(formData: FormData) {
-  await requireAuth();
+  await requireLegacyWrite();
   const start = Date.now();
 
   const tournamentId = value(formData, "tournamentId");
@@ -1551,7 +1554,7 @@ export async function generateFinalAction(formData: FormData) {
 
   if (tournament.isExhibition) {
     if (Number(lockedQualificationCount) < qualificationRoundTarget) {
-      redirect(`/tournaments/${tournamentId}/game?error=qualification-incomplete`);
+      redirect(`/tournaments-old/${tournamentId}/game?error=qualification-incomplete`);
     }
 
     const [semifinalRound] = await sql`
@@ -1587,16 +1590,16 @@ export async function generateFinalAction(formData: FormData) {
       });
 
       logPerf(`generate exhibition semifinal ${tournamentId}`, start);
-      revalidatePath(`/tournaments/${tournamentId}/game`);
-      redirect(`/tournaments/${tournamentId}/rounds/${round.id}`);
+      revalidatePath(`/tournaments-old/${tournamentId}/game`);
+      redirect(`/tournaments-old/${tournamentId}/rounds/${round.id}`);
     }
 
     if (String(semifinalRound.status) !== "locked") {
-      redirect(`/tournaments/${tournamentId}/game?error=semifinal-unlocked`);
+      redirect(`/tournaments-old/${tournamentId}/game?error=semifinal-unlocked`);
     }
 
     if (finalRound) {
-      redirect(`/tournaments/${tournamentId}/final`);
+      redirect(`/tournaments-old/${tournamentId}/final`);
     }
 
     const semifinalPlayers = await getScoredRoundPlayers(String(semifinalRound.id));
@@ -1622,8 +1625,8 @@ export async function generateFinalAction(formData: FormData) {
     });
 
     logPerf(`generate exhibition final ${tournamentId}`, start);
-    revalidatePath(`/tournaments/${tournamentId}/game`);
-    redirect(`/tournaments/${tournamentId}/final`);
+    revalidatePath(`/tournaments-old/${tournamentId}/game`);
+    redirect(`/tournaments-old/${tournamentId}/final`);
   }
 
   const finalists = standings.slice(0, tournament.finalistCount);
@@ -1669,6 +1672,6 @@ export async function generateFinalAction(formData: FormData) {
   });
 
   logPerf(`generate final ${tournamentId}`, start);
-  revalidatePath(`/tournaments/${tournamentId}/game`);
-  redirect(`/tournaments/${tournamentId}/final`);
+  revalidatePath(`/tournaments-old/${tournamentId}/game`);
+  redirect(`/tournaments-old/${tournamentId}/final`);
 }

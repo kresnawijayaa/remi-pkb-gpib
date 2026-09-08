@@ -122,7 +122,7 @@ export function ViewerBoard({
       <div className="grid min-h-0 grid-rows-[auto_auto_1fr_auto] gap-3 overflow-hidden">
         <div className="border-b border-background/20 pb-3">
           <div>
-            <Link href={`/tournaments/${tournamentId}`} className="text-sm font-semibold text-background/70">&larr; Dashboard</Link>
+            <Link href={`/tournaments-old/${tournamentId}`} className="text-sm font-semibold text-background/70">&larr; Dashboard</Link>
             <h1 className="mt-2 truncate text-4xl font-semibold lg:text-5xl">{tournamentName}</h1>
           </div>
         </div>

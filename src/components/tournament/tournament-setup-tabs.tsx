@@ -315,7 +315,7 @@ export function TournamentSetupTabs({
                         className="grid gap-3 border border-border bg-background p-4"
                       >
                         <Link
-                          href={round.roundType === "final" ? `/tournaments/${tournamentId}/final` : `/tournaments/${tournamentId}/rounds/${round.id}`}
+                          href={round.roundType === "final" ? `/tournaments-old/${tournamentId}/final` : `/tournaments-old/${tournamentId}/rounds/${round.id}`}
                           className="grid gap-2 transition hover:text-primary active:translate-y-px"
                         >
                           <div className="flex items-center justify-between gap-3">

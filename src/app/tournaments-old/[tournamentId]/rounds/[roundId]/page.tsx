@@ -91,7 +91,7 @@ export default async function RoundPage({
     <main className="app-container grid gap-8 py-8">
       <header className="flex flex-col gap-4 border-b border-border pb-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <Link href={`/tournaments/${tournamentId}`} className="text-sm font-semibold text-primary">&larr; Dashboard</Link>
+          <Link href={`/tournaments-old/${tournamentId}`} className="text-sm font-semibold text-primary">&larr; Dashboard</Link>
           <h1 className="mt-3 text-4xl font-semibold">{roundLabel}</h1>
           <div className="mt-2 flex gap-2"><Badge>{round.status}</Badge></div>
         </div>
@@ -125,7 +125,7 @@ export default async function RoundPage({
             <div key={item.id} className="flex items-center gap-2">
               {index > 0 && <div className="h-px w-8 bg-border" />}
               <Link
-                href={item.roundType === "final" ? `/tournaments/${tournamentId}/final` : `/tournaments/${tournamentId}/rounds/${item.id}`}
+                href={item.roundType === "final" ? `/tournaments-old/${tournamentId}/final` : `/tournaments-old/${tournamentId}/rounds/${item.id}`}
                 className={[
                   "grid gap-0.5 text-sm font-semibold underline-offset-4 transition hover:underline active:translate-y-px",
                   item.id === roundId ? "text-foreground" : "text-muted-foreground hover:text-foreground",

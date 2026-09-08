@@ -9,11 +9,14 @@
     "start": "next start",
     "lint": "eslint .",
     "db:reset": "tsx scripts/reset-db.ts",
-    "db:seed": "tsx scripts/seed-demo.ts"
+    "db:seed": "tsx scripts/seed-demo.ts",
+    "db:migrate:flexible": "node scripts/migrate-flexible.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "1.1.0",
     "clsx": "^2.1.1",
+    "csv-parse": "^7.0.2",
+    "exceljs": "^4.4.0",
     "next": "15.5.19",
     "react": "19.2.7",
     "react-dom": "19.2.7",
