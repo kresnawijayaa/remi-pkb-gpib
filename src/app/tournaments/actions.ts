@@ -4,10 +4,10 @@ import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { isAuthenticated } from "@/lib/auth";
-import { assertRosterEditable, assertScoreEditable, generateDraw, generateSeededDraw, normalizeCommunityName, RuleError, settingsSchema, swapDraw, unlockDraw, validateDraw } from "@/lib/flexible/model";
+import { assertRosterEditable, assertScoreEditable, generateDraw, generateSeededDraw, generateTierDraw, lockRoundResults, markRoundResultsChanged, normalizeCommunityName, RuleError, settingsSchema, swapDraw, unlockDraw, unlockRoundResults, validateDraw } from "@/lib/flexible/model";
 import { createEvent, getEvent, saveEvent } from "@/lib/flexible/store";
 import { buildDistribution, buildNames, randomFrom } from "@/lib/flexible/dev-seed";
-import { calculateStandings, rankTable, scoringComplete } from "@/lib/flexible/scoring";
+import { allRoundResultsLocked, calculateStandings, rankTable, scoringComplete } from "@/lib/flexible/scoring";
 
 export type ActionState = { error?: string; message?: string; redirectTo?: string; nonce?: string };
 
@@ -18,7 +18,7 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
     const id = z.string().uuid().parse(form.get("eventId"));
     if (operation === "create") {
       const settings = settingsSchema.parse(Object.fromEntries(form));
-      await createEvent(id, { dataVersion: 2, settings, communities: [], participants: [], draws: [], results: [], qualifiedIds: [], qualificationLockedAt: null, parentId: null, audit: [{ at: new Date().toISOString(), action: "Turnamen dibuat" }] });
+      await createEvent(id, { dataVersion: 2, settings, communities: [], participants: [], draws: [], results: [], resultStates: [], qualifiedIds: [], qualificationLockedAt: null, parentId: null, audit: [{ at: new Date().toISOString(), action: "Turnamen dibuat" }] });
       revalidatePath("/tournaments");
       return { redirectTo: `/tournaments/${id}` };
     }
@@ -105,13 +105,13 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       data.draws = [];
       message = `${input.count} peserta uji ditambahkan dengan distribusi ${input.profile}.`;
     } else if (operation === "dev-score") {
-      assertScoreEditable(data);
       if (process.env.REMI_DEV_TOOLS_ENABLED !== "true" || !process.env.REMI_DEV_PIN) throw new RuleError("Developer tools tidak aktif.");
       const supplied = Buffer.from(String(form.get("developerPin")));
       const expected = Buffer.from(process.env.REMI_DEV_PIN);
       if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) throw new RuleError("PIN developer salah.");
       const input = z.object({ scope: z.enum(["round", "all"]), profile: z.enum(["normal", "ties"]), seed: z.coerce.number().int().min(0) }).parse(Object.fromEntries(form));
       const selectedDraws = data.draws.filter(draw => draw.locked && (input.scope === "all" || draw.number === number));
+      selectedDraws.forEach(draw => assertScoreEditable(data, draw.number));
       if (!selectedDraws.length) throw new RuleError("Tidak ada pembagian terkunci untuk diisi.");
       if (form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan pengisian skor simulasi.");
       const selectedRounds = new Set(selectedDraws.map(draw => draw.number));
@@ -123,6 +123,7 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
         const generated = order.map((participantId, index) => ({ participantId, score: input.profile === "ties" && index < 2 ? 500 : Math.round(900 - index * 110 + random() * 70), manualRank: index + 1 }));
         data.results.push({ round: draw.number, table: tableIndex + 1, submittedAt: new Date().toISOString(), scores: rankTable(generated) });
       }
+      selectedDraws.forEach(draw => markRoundResultsChanged(data, draw.number));
       message = `${selectedDraws.length} babak diisi skor simulasi untuk ${selectedDraws.reduce((sum, draw) => sum + draw.tables.flat().length, 0)} posisi peserta.`;
     } else if (operation === "generate") {
       const draw = generateDraw(data, number);
@@ -132,6 +133,10 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       const draw = generateSeededDraw(data, number);
       data.draws = [...data.draws.filter(item => item.number !== number), draw].sort((first, second) => first.number - second.number);
       message = `Draft adil babak ${number} siap berdasarkan peringkat awal peserta.`;
+    } else if (operation === "generate-tier") {
+      const draw = generateTierDraw(data, number);
+      data.draws = [...data.draws.filter(item => item.number !== number), draw].sort((first, second) => first.number - second.number);
+      message = `Shuffle Tier babak ${number} siap dari hasil terkunci babak ${number - 1}.`;
     } else if (operation === "swap") {
       swapDraw(data, number, String(form.get("first")), String(form.get("second")));
       message = "Peserta ditukar. Periksa peringatan rotasi sebelum mengunci.";
@@ -149,7 +154,7 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       unlockDraw(data, number);
       message = "Kunci dibuka. Babak ini ditarik dari link publik; draft berikutnya dibersihkan.";
     } else if (operation === "score-table") {
-      assertScoreEditable(data);
+      assertScoreEditable(data, number);
       const table = Number(form.get("table"));
       const draw = data.draws.find(item => item.number === number && item.locked);
       const participantIds = draw?.tables[table - 1];
@@ -157,15 +162,26 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       const input = participantIds.map(participantId => ({ participantId, score: z.coerce.number().int().min(-999999).max(999999).parse(form.get(`score-${participantId}`)), manualRank: form.get(`rank-${participantId}`) ? z.coerce.number().int().min(1).max(participantIds.length).parse(form.get(`rank-${participantId}`)) : null }));
       const scores = rankTable(input);
       data.results = [...data.results.filter(result => result.round !== number || result.table !== table), { round: number, table, scores, submittedAt: new Date().toISOString() }];
+      markRoundResultsChanged(data, number);
       message = `Skor babak ${number}, meja ${table} disimpan.`;
     } else if (operation === "score-clear") {
-      assertScoreEditable(data);
+      assertScoreEditable(data, number);
       if (form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan penghapusan skor meja.");
       const table = Number(form.get("table"));
       data.results = data.results.filter(result => result.round !== number || result.table !== table);
+      markRoundResultsChanged(data, number);
       message = `Skor babak ${number}, meja ${table} dihapus.`;
+    } else if (operation === "result-lock") {
+      if (form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan penguncian seluruh hasil babak.");
+      lockRoundResults(data, number);
+      message = number < data.settings.rounds ? `Hasil babak ${number} dikunci. Shuffle Tier babak ${number + 1} kini dapat digunakan.` : `Hasil babak ${number} dikunci.`;
+    } else if (operation === "result-unlock") {
+      if (form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan pembukaan hasil babak.");
+      const invalidated = unlockRoundResults(data, number);
+      message = `Hasil babak ${number} dibuka.${invalidated ? ` ${invalidated} draft Shuffle Tier yang bergantung pada hasil ini dibatalkan.` : ""}`;
     } else if (operation === "qualification-lock") {
       if (!scoringComplete(data)) throw new RuleError("Lengkapi skor seluruh meja dan babak sebelum mengunci kelolosan.");
+      if (!allRoundResultsLocked(data)) throw new RuleError("Kunci hasil setiap babak sebelum mengunci peserta yang lolos.");
       if (form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan daftar peserta yang lolos.");
       data.qualifiedIds = calculateStandings(data).slice(0, data.settings.advancing).map(row => row.participantId);
       data.qualificationLockedAt = new Date().toISOString();
@@ -181,7 +197,7 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       const nextId = randomUUID();
       const participants = data.qualifiedIds.map((participantId, index) => { const person = data.participants.find(item => item.id === participantId); if (!person) throw new RuleError("Peserta lolos tidak ditemukan."); return { ...person, id: randomUUID(), number: index + 1 }; });
       const usedCommunityIds = new Set(participants.map(person => person.communityId).filter(Boolean));
-      await createEvent(nextId, { dataVersion: 2, settings: nextSettings, communities: data.communities.filter(item => usedCommunityIds.has(item.id)), participants, draws: [], results: [], qualifiedIds: [], qualificationLockedAt: null, parentId: event.id, audit: [{ at: new Date().toISOString(), action: `Tahap dibuat dari ${data.settings.name}` }] });
+      await createEvent(nextId, { dataVersion: 2, settings: nextSettings, communities: data.communities.filter(item => usedCommunityIds.has(item.id)), participants, draws: [], results: [], resultStates: [], qualifiedIds: [], qualificationLockedAt: null, parentId: event.id, audit: [{ at: new Date().toISOString(), action: `Tahap dibuat dari ${data.settings.name}` }] });
       data.audit.push({ at: new Date().toISOString(), action: `create-stage: tahap lanjutan ${nextSettings.name} dibuat.` });
       await saveEvent(event);
       revalidatePath("/tournaments");

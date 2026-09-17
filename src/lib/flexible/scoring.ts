@@ -1,5 +1,5 @@
 import type { EventData, ScoreEntry, TableResult } from "./model";
-import { RuleError } from "./model";
+import { isRoundResultLocked, roundScoringComplete, RuleError } from "./model";
 
 export type Standing = { participantId: string; totalPoint: number; totalScore: number; firsts: number; seconds: number; thirds: number; completedRounds: number; rounds: Record<number, ScoreEntry> };
 
@@ -34,5 +34,6 @@ export function calculateStandings(data: EventData): Standing[] {
 }
 
 export function expectedTableCount(data: EventData) { return data.draws.filter(draw => draw.locked).reduce((count, draw) => count + draw.tables.length, 0); }
-export function scoringComplete(data: EventData) { return data.draws.filter(draw => draw.locked).length === data.settings.rounds && data.results.length === expectedTableCount(data); }
+export function scoringComplete(data: EventData) { return data.draws.filter(draw => draw.locked).length === data.settings.rounds && data.draws.filter(draw => draw.locked).every(draw => roundScoringComplete(data, draw.number)); }
+export function allRoundResultsLocked(data: EventData) { return data.draws.filter(draw => draw.locked).length === data.settings.rounds && data.draws.filter(draw => draw.locked).every(draw => isRoundResultLocked(data, draw.number)); }
 export function resultFor(data: EventData, round: number, table: number): TableResult | undefined { return data.results.find(result => result.round === round && result.table === table); }

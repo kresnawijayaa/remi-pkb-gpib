@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test": "tsx --test src/lib/flexible/model.test.ts",
     "db:reset": "tsx scripts/reset-db.ts",
     "db:seed": "tsx scripts/seed-demo.ts",
     "db:migrate:flexible": "node scripts/migrate-flexible.mjs"

@@ -12,5 +12,5 @@ export default async function DrawsPage({ params, searchParams }: { params: Prom
   if (!event) notFound();
   const requested = Number(query.round ?? 1);
   const selected = Number.isInteger(requested) ? Math.max(1, Math.min(requested, event.data.settings.rounds)) : 1;
-  return <><Link className="neo-back" href={`/tournaments/${event.id}`}>← {event.data.settings.name}</Link><header className="neo-page-heading"><span className="neo-eyebrow">02 / PEMBAGIAN MEJA</span><h1>Pembagian meja</h1><p>Generate pembagian setiap babak secara acak atau berdasarkan peringkat. Susunan dapat ditinjau, ditukar manual, dan dikunci sebelum pertandingan.</p></header><DrawBoard event={event} selected={selected} /></>;
+  return <><Link className="neo-back" href={`/tournaments/${event.id}`}>← {event.data.settings.name}</Link><header className="neo-page-heading"><span className="neo-eyebrow">02 / PEMBAGIAN MEJA</span><h1>Pembagian meja</h1><p>Pilih Shuffle Rotasi untuk persiapan lebih awal, atau Shuffle Tier setelah hasil babak sebelumnya dikunci. Susunan tetap dapat ditinjau, ditukar manual, dan dikunci sebelum bermain.</p></header><DrawBoard event={event} selected={selected} /></>;
 }
