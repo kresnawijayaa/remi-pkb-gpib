@@ -229,11 +229,17 @@
 .neo-public-standing-tools { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
 .neo-public-standing-tools p { margin: 0; font-size: 12px; }
 .neo-live-dot { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border: 1px solid var(--neo-ink); border-radius: 50%; background: #72c966; }
+.neo-public-standing-search { display: grid; grid-template-columns: minmax(240px, 520px) auto; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+.neo-public-standing-search > span { padding-bottom: 11px; font-size: 12px; font-weight: 800; }
 .neo-public-standing-scroll { max-height: calc(100vh - 315px); overflow: auto; box-shadow: 5px 5px 0 var(--neo-ink); }
-.neo-public-standing-table { min-width: 850px !important; font-size: clamp(13px, 1.25vw, 18px) !important; }
+.neo-public-standing-table { --neo-rank-column: 92px; min-width: 850px !important; font-size: clamp(13px, 1.25vw, 18px) !important; }
 .neo-public-standing-table thead { position: sticky; top: 0; z-index: 2; }
 .neo-public-standing-table th, .neo-public-standing-table td { padding: 13px 15px; }
 .neo-public-standing-table th:nth-child(n+3), .neo-public-standing-table td:nth-child(n+3) { text-align: center; }
+.neo-public-standing-table :where(th, td):first-child { position: sticky; left: 0; width: var(--neo-rank-column); min-width: var(--neo-rank-column); max-width: var(--neo-rank-column); z-index: 3; background: inherit; }
+.neo-public-standing-table :where(th, td):nth-child(2) { position: sticky; left: var(--neo-rank-column); width: 270px; min-width: 270px; max-width: 270px; z-index: 3; background: inherit; box-shadow: 3px 0 0 rgba(32, 34, 30, 0.3); }
+.neo-public-standing-table thead :where(th:first-child, th:nth-child(2)) { z-index: 5; background: var(--neo-ink); }
+.neo-public-standing-table tbody tr:not(.is-podium) { background: #fffcf5; }
 .neo-public-standing-table td:first-child strong { font-size: 1.35em; }
 .neo-public-standing-table td:nth-child(2) small { display: block; margin-top: 2px; font-size: 0.7em; color: #55574f; }
 .neo-public-standing-table .is-podium { background: #fff8c8; }
@@ -312,8 +318,13 @@
   .neo-login-card-mark { display: none; }
   .neo-public-standing-tools { align-items: stretch; flex-direction: column; }
   .neo-public-standing-tools .neo-button { width: 100%; }
+  .neo-public-standing-search { grid-template-columns: 1fr; gap: 4px; }
+  .neo-public-standing-search > span { padding-bottom: 0; }
   .neo-live-summary { width: 100%; }
   .neo-public-standing-scroll { max-height: none; }
+  .neo-public-standing-table { --neo-rank-column: 68px; }
+  .neo-public-standing-table th, .neo-public-standing-table td { padding: 11px 10px; }
+  .neo-public-standing-table :where(th, td):nth-child(2) { width: 210px; min-width: 210px; max-width: 210px; }
 }
 @media (prefers-reduced-motion: reduce) { .neo-app * { transition: none !important; scroll-behavior: auto !important; } .neo-loader-spinner, .neo-dismissible-notice { animation: none !important; } }
 @media print { .neo-top, .neo-footer, .neo-public-search, .neo-button { display: none !important; } .neo-main { padding: 0; } .neo-table { break-inside: avoid; } .neo-app { background: white; } }
