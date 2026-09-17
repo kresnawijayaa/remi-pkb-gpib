@@ -8,6 +8,7 @@ import {
   type EventData,
   type ScoreEntry,
 } from "./model";
+import { formatPublicCode, validPublicCode } from "./public-code";
 
 function randomSequence(seed = 1) {
   let value = seed >>> 0;
@@ -39,6 +40,10 @@ function eventWithLockedFirstRound(participantCount: number): EventData {
     resultStates: [{ round: 1, revision: 1, lockedAt: "2026-01-01T01:00:00.000Z" }],
     qualifiedIds: [],
     qualificationLockedAt: null,
+    drawShareCode: null,
+    standingsShareToken: null,
+    standingsShareHash: null,
+    standingsShareCode: null,
     audit: [],
     parentId: null,
   };
@@ -113,4 +118,11 @@ test("hasil tidak dapat dibuka selama pembagian Shuffle Tier turunannya terkunci
   dependent.locked = true;
   data.draws.push(dependent);
   assert.throws(() => unlockRoundResults(data, 1), (error: unknown) => error instanceof RuleError && /Buka kunci pembagian babak 2/.test(error.message));
+});
+
+test("kode publik memakai tanggal dan jam WIB sampai detik", () => {
+  const code = formatPublicCode(new Date("2026-09-17T07:32:05.000Z"));
+  assert.equal(code, "260917-143205");
+  assert.equal(validPublicCode(code), true);
+  assert.equal(validPublicCode("260917-1432"), false);
 });

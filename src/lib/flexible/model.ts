@@ -16,7 +16,7 @@ export type Draw = { number: number; locked: boolean; tables: string[][]; revisi
 export type ScoreEntry = { participantId: string; score: number; tableRank: number; tournamentPoint: number };
 export type TableResult = { round: number; table: number; submittedAt: string; scores: ScoreEntry[] };
 export type RoundResultState = { round: number; revision: number; lockedAt: string | null };
-export type EventData = { dataVersion: 2; settings: Settings; communities: Community[]; participants: Person[]; draws: Draw[]; results: TableResult[]; resultStates: RoundResultState[]; qualifiedIds: string[]; qualificationLockedAt: string | null; audit: { at: string; action: string }[]; parentId: string | null };
+export type EventData = { dataVersion: 2; settings: Settings; communities: Community[]; participants: Person[]; draws: Draw[]; results: TableResult[]; resultStates: RoundResultState[]; qualifiedIds: string[]; qualificationLockedAt: string | null; drawShareCode: string | null; standingsShareToken: string | null; standingsShareHash: string | null; standingsShareCode: string | null; audit: { at: string; action: string }[]; parentId: string | null };
 export type EventRecord = { id: string; version: number; data: EventData; shareToken: string | null };
 export class RuleError extends Error {}
 
@@ -53,7 +53,7 @@ export function upgradeEventData(raw: unknown): EventData {
   for (const round of new Set(results.map(result => result.round))) {
     if (!resultStates.some(state => state.round === round)) resultStates.push({ round, revision: 1, lockedAt: qualificationLockedAt });
   }
-  return { dataVersion: 2, settings: source.settings as Settings, communities, participants, draws: source.draws ?? [], results, resultStates, qualifiedIds: source.qualifiedIds ?? [], qualificationLockedAt, audit: source.audit ?? [], parentId: source.parentId ?? null };
+  return { dataVersion: 2, settings: source.settings as Settings, communities, participants, draws: source.draws ?? [], results, resultStates, qualifiedIds: source.qualifiedIds ?? [], qualificationLockedAt, drawShareCode: source.drawShareCode ?? null, standingsShareToken: source.standingsShareToken ?? null, standingsShareHash: source.standingsShareHash ?? null, standingsShareCode: source.standingsShareCode ?? null, audit: source.audit ?? [], parentId: source.parentId ?? null };
 }
 
 export function communityName(data: EventData, person: Person) { return data.communities.find(item => item.id === person.communityId)?.name ?? ""; }

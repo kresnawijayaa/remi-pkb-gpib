@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { isAuthenticated } from "@/lib/auth";
 import { assertRosterEditable, assertScoreEditable, generateDraw, generateSeededDraw, generateTierDraw, lockRoundResults, markRoundResultsChanged, normalizeCommunityName, RuleError, settingsSchema, swapDraw, unlockDraw, unlockRoundResults, validateDraw } from "@/lib/flexible/model";
-import { createEvent, getEvent, saveEvent } from "@/lib/flexible/store";
+import { createEvent, createPublicShortCode, getEvent, saveEvent, tokenHash } from "@/lib/flexible/store";
 import { buildDistribution, buildNames, randomFrom } from "@/lib/flexible/dev-seed";
 import { allRoundResultsLocked, calculateStandings, rankTable, scoringComplete } from "@/lib/flexible/scoring";
 
@@ -18,7 +18,7 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
     const id = z.string().uuid().parse(form.get("eventId"));
     if (operation === "create") {
       const settings = settingsSchema.parse(Object.fromEntries(form));
-      await createEvent(id, { dataVersion: 2, settings, communities: [], participants: [], draws: [], results: [], resultStates: [], qualifiedIds: [], qualificationLockedAt: null, parentId: null, audit: [{ at: new Date().toISOString(), action: "Turnamen dibuat" }] });
+      await createEvent(id, { dataVersion: 2, settings, communities: [], participants: [], draws: [], results: [], resultStates: [], qualifiedIds: [], qualificationLockedAt: null, drawShareCode: null, standingsShareToken: null, standingsShareHash: null, standingsShareCode: null, parentId: null, audit: [{ at: new Date().toISOString(), action: "Turnamen dibuat" }] });
       revalidatePath("/tournaments");
       return { redirectTo: `/tournaments/${id}` };
     }
@@ -197,7 +197,7 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       const nextId = randomUUID();
       const participants = data.qualifiedIds.map((participantId, index) => { const person = data.participants.find(item => item.id === participantId); if (!person) throw new RuleError("Peserta lolos tidak ditemukan."); return { ...person, id: randomUUID(), number: index + 1 }; });
       const usedCommunityIds = new Set(participants.map(person => person.communityId).filter(Boolean));
-      await createEvent(nextId, { dataVersion: 2, settings: nextSettings, communities: data.communities.filter(item => usedCommunityIds.has(item.id)), participants, draws: [], results: [], resultStates: [], qualifiedIds: [], qualificationLockedAt: null, parentId: event.id, audit: [{ at: new Date().toISOString(), action: `Tahap dibuat dari ${data.settings.name}` }] });
+      await createEvent(nextId, { dataVersion: 2, settings: nextSettings, communities: data.communities.filter(item => usedCommunityIds.has(item.id)), participants, draws: [], results: [], resultStates: [], qualifiedIds: [], qualificationLockedAt: null, drawShareCode: null, standingsShareToken: null, standingsShareHash: null, standingsShareCode: null, parentId: event.id, audit: [{ at: new Date().toISOString(), action: `Tahap dibuat dari ${data.settings.name}` }] });
       data.audit.push({ at: new Date().toISOString(), action: `create-stage: tahap lanjutan ${nextSettings.name} dibuat.` });
       await saveEvent(event);
       revalidatePath("/tournaments");
@@ -206,11 +206,33 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       if (!data.draws.some(draw => draw.locked)) throw new RuleError("Kunci minimal satu babak sebelum membagikan.");
       if (event.shareToken && form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan penggantian link; link lama akan berhenti berlaku.");
       event.shareToken = randomBytes(24).toString("hex");
+      data.drawShareCode = await createPublicShortCode("schedule");
       message = "Link pembagian siap. Hanya babak terkunci yang ditampilkan.";
+    } else if (operation === "share-short") {
+      if (!event.shareToken) throw new RuleError("Buat link pembagian terlebih dahulu.");
+      data.drawShareCode = await createPublicShortCode("schedule");
+      message = "Shortlink pembagian siap digunakan.";
     } else if (operation === "revoke") {
       if (form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan pencabutan link publik.");
       event.shareToken = null;
+      data.drawShareCode = null;
       message = "Link publik dicabut.";
+    } else if (operation === "standings-share") {
+      if (data.standingsShareToken && form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan penggantian link klasemen; link lama akan berhenti berlaku.");
+      data.standingsShareToken = randomBytes(24).toString("hex");
+      data.standingsShareHash = tokenHash(data.standingsShareToken);
+      data.standingsShareCode = await createPublicShortCode("standings");
+      message = "Link klasemen publik siap dibagikan.";
+    } else if (operation === "standings-short") {
+      if (!data.standingsShareToken) throw new RuleError("Buat link klasemen terlebih dahulu.");
+      data.standingsShareCode = await createPublicShortCode("standings");
+      message = "Shortlink klasemen siap digunakan.";
+    } else if (operation === "standings-revoke") {
+      if (form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan pencabutan link klasemen publik.");
+      data.standingsShareToken = null;
+      data.standingsShareHash = null;
+      data.standingsShareCode = null;
+      message = "Link klasemen publik dicabut.";
     } else throw new RuleError("Aksi tidak dikenal.");
     data.audit.push({ at: new Date().toISOString(), action: `${operation}${Number.isFinite(number) && number > 0 ? ` · babak ${number}` : ""}: ${message}` });
     await saveEvent(event);
