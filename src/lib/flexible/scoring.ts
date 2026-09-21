@@ -30,7 +30,7 @@ export function calculateStandings(data: EventData): Standing[] {
     if (score.tableRank === 3) current.thirds++;
     standings.set(score.participantId, current);
   }
-  return [...standings.values()].sort((first, second) => second.totalPoint - first.totalPoint || second.firsts - first.firsts || second.seconds - first.seconds || second.thirds - first.thirds || second.totalScore - first.totalScore || (data.participants.find(item => item.id === first.participantId)?.number ?? 0) - (data.participants.find(item => item.id === second.participantId)?.number ?? 0));
+  return [...standings.values()].sort((first, second) => second.totalPoint - first.totalPoint || second.totalScore - first.totalScore || second.firsts - first.firsts || second.seconds - first.seconds || second.thirds - first.thirds);
 }
 
 export function expectedTableCount(data: EventData) { return data.draws.filter(draw => draw.locked).reduce((count, draw) => count + draw.tables.length, 0); }

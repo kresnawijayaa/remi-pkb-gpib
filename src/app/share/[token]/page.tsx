@@ -13,5 +13,5 @@ export default async function SharedPage({ params }: { params: Promise<{ token: 
   try { event = await getSharedEvent(token); }
   catch { return <Shell publicView><div className="neo-empty"><h1>Jadwal belum dapat dimuat.</h1><p>Koneksi sedang bermasalah. Muat ulang halaman atau hubungi panitia.</p></div></Shell>; }
   if (!event) notFound();
-  return <Shell publicView><PublicBoard {...event} /></Shell>;
+  return <Shell publicView><PublicBoard {...event} token={token} /></Shell>;
 }

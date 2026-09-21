@@ -15,8 +15,8 @@ export function StandingsBoard({ event }: { event: EventRecord }) {
   return <>
     <section className="neo-panel">
       <div className="neo-section-heading"><div><span className={`neo-tag ${complete ? "neo-green" : "neo-blue"}`}>{complete ? "SKOR LENGKAP" : "BERJALAN"}</span><h2>Klasemen keseluruhan</h2></div><span className="neo-count">{event.data.results.length}/{expected} meja</span></div>
-      <p className="neo-hint"><strong>Poin tiap babak:</strong> 🥇 5 · 🥈 4 · 🥉 3 · 4️⃣ 2 · 5️⃣ 1. <strong>Urutan klasemen:</strong> poin terbesar, lalu jumlah 🥇, 🥈, 🥉 terbanyak, dan total skor terbesar.</p>
-      <div className="neo-table-scroll"><table className="neo-standings"><thead><tr><th>Rank</th><th>Peserta</th><th>Main</th><th title="Peringkat 1">🥇</th><th title="Peringkat 2">🥈</th><th title="Peringkat 3">🥉</th><th>Poin</th><th>Total skor</th><th>Status</th></tr></thead><tbody>{standings.map((row, index) => {
+      <p className="neo-hint"><strong>Poin tiap babak:</strong> Gold 5 · Silver 4 · Bronze 3 · posisi 4 mendapat 2 · posisi 5 mendapat 1. <strong>Urutan klasemen:</strong> poin terbesar, lalu total skor terbesar, kemudian jumlah medali Gold, Silver, dan Bronze terbanyak.</p>
+      <div className="neo-table-scroll"><table className="neo-standings"><thead><tr><th>Rank</th><th>Peserta</th><th>Main</th><th title="Jumlah peringkat pertama">🥇 Gold</th><th title="Jumlah peringkat kedua">🥈 Silver</th><th title="Jumlah peringkat ketiga">🥉 Bronze</th><th>Poin</th><th>Total skor</th><th>Status</th></tr></thead><tbody>{standings.map((row, index) => {
         const person = people.get(row.participantId);
         const isQualified = qualified.has(row.participantId);
         const isQualificationZone = !qualificationLocked && index < event.data.settings.advancing;

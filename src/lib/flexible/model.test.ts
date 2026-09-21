@@ -9,6 +9,8 @@ import {
   type ScoreEntry,
 } from "./model";
 import { formatPublicCode, validPublicCode } from "./public-code";
+import { calculateStandings } from "./scoring";
+import { createSchedulePdf } from "./schedule-pdf";
 
 function randomSequence(seed = 1) {
   let value = seed >>> 0;
@@ -125,4 +127,40 @@ test("kode publik memakai tanggal dan jam WIB sampai detik", () => {
   assert.equal(code, "260917-143205");
   assert.equal(validPublicCode(code), true);
   assert.equal(validPublicCode("260917-1432"), false);
+});
+
+test("klasemen membandingkan skor sebelum medali dan tidak memakai nomor peserta", () => {
+  const data = eventWithLockedFirstRound(2);
+  data.participants = [
+    { id: "p-high-number", number: 99, name: "Nomor Besar", communityId: "c0" },
+    { id: "p-low-number", number: 1, name: "Nomor Kecil", communityId: "c1" },
+    { id: "p-high-score", number: 10, name: "Skor Besar", communityId: "c0" },
+    { id: "p-more-gold", number: 11, name: "Gold Lebih Banyak", communityId: "c1" },
+  ];
+  data.results = [
+    { round: 1, table: 1, submittedAt: "2026-01-01T00:00:00.000Z", scores: [
+      { participantId: "p-high-number", score: 500, tableRank: 2, tournamentPoint: 4 },
+      { participantId: "p-low-number", score: 500, tableRank: 2, tournamentPoint: 4 },
+      { participantId: "p-high-score", score: 900, tableRank: 2, tournamentPoint: 5 },
+      { participantId: "p-more-gold", score: 800, tableRank: 1, tournamentPoint: 5 },
+    ] },
+  ];
+
+  const standings = calculateStandings(data);
+  assert.deepEqual(standings.map(row => row.participantId), ["p-high-score", "p-more-gold", "p-high-number", "p-low-number"]);
+});
+
+test("PDF pembagian membuat dua halaman untuk sembilan meja tanpa halaman kosong", async () => {
+  const data = eventWithLockedFirstRound(45);
+  const draw = data.draws[0];
+  const pdf = await createSchedulePdf({
+    name: "Turnamen Uji PDF",
+    draw,
+    participants: data.participants.map(person => ({ ...person, community: `Komunitas ${person.communityId}` })),
+    publicUrl: "https://remi.example/m/260921-120000",
+  });
+  const source = pdf.toString("latin1");
+  assert.equal(source.startsWith("%PDF-"), true);
+  assert.equal((source.match(/\/Type \/Page\b/g) ?? []).length, 2);
+  assert.ok(pdf.length > 10_000);
 });
