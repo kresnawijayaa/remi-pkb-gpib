@@ -146,6 +146,10 @@
 .neo-page-heading + .neo-actions { margin-top: 0; margin-bottom: 30px; }
 .neo-link-box { margin: 20px 0; }
 .neo-link-box p { font-size: 12px; }
+.neo-pdf-downloads { margin: 22px 0; padding: 16px; border: 2px dashed var(--neo-ink); background: var(--neo-blue); }
+.neo-pdf-downloads .neo-actions { margin: 10px 0; }
+.neo-pdf-downloads .neo-button { flex: 1 1 140px; }
+.neo-pdf-downloads small { display: block; font-size: 10px; line-height: 1.5; }
 .neo-audit { display: grid; gap: 14px; }
 .neo-audit li { display: grid; gap: 4px; border-bottom: 1px solid #b9b9ae; padding-bottom: 12px; font-size: 13px; }
 .neo-audit time { color: #55574f; font-size: 11px; }
