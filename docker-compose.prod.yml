@@ -1,0 +1,75 @@
+name: remi-pkb-gpib
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: remi
+      POSTGRES_USER: remi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Isi POSTGRES_PASSWORD di .env}
+    volumes:
+      - remi_postgres_data:/var/lib/postgresql
+    networks:
+      - database
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=30", "-c", "work_mem=2MB"]
+    mem_limit: 256m
+    shm_size: 128m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U remi -d remi"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  app:
+    image: ${REMI_IMAGE:-ghcr.io/kresnawijayaa/remi-pkb-gpib:latest}
+    container_name: remi-pkb-app
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      DATABASE_DRIVER: postgres
+      DATABASE_URL: postgresql://remi:${POSTGRES_PASSWORD:?Isi POSTGRES_PASSWORD di .env}@postgres:5432/remi
+      REMI_ADMIN_PIN: ${REMI_ADMIN_PIN:?Isi REMI_ADMIN_PIN di .env}
+      REMI_SESSION_SECRET: ${REMI_SESSION_SECRET:?Isi REMI_SESSION_SECRET di .env}
+      REMI_AUTH_ENABLED: "true"
+      REMI_DEV_TOOLS_ENABLED: "false"
+      NODE_OPTIONS: --max-old-space-size=384
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - database
+      - apps
+    ports:
+      - "127.0.0.1:3085:3000"
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/healthz',{signal:AbortSignal.timeout(5000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 8s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  apps:
+    external: true
+    name: apps
+  database:
+    internal: true
+
+volumes:
+  remi_postgres_data:

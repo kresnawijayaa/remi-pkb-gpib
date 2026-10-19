@@ -1,4 +1,4 @@
-import { neon } from "@neondatabase/serverless";
+import { databaseSql } from "../database";
 import { createHash } from "node:crypto";
 import type { EventData, EventRecord } from "./model";
 import { communityName, RuleError, upgradeEventData } from "./model";
@@ -8,7 +8,7 @@ import { requireAuth } from "@/lib/auth";
 
 function database() {
   if (!process.env.DATABASE_URL) throw new RuleError("DATABASE_URL belum diatur.");
-  return neon(process.env.DATABASE_URL);
+  return databaseSql;
 }
 
 export function tokenHash(token: string) { return createHash("sha256").update(token).digest("hex"); }

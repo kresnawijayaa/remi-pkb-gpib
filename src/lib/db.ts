@@ -1,10 +1,4 @@
-import { neon } from "@neondatabase/serverless";
-
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL belum diatur.");
-}
-
-const rawSql = neon(process.env.DATABASE_URL);
+import { databaseSql as rawSql } from "./database";
 
 function isTransientDatabaseError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
@@ -44,8 +38,6 @@ const sqlTagged = async (strings: TemplateStringsArray, ...values: unknown[]) =>
 
 export const sql = Object.assign(sqlTagged, {
   query: rawSql.query.bind(rawSql),
-  unsafe: rawSql.unsafe.bind(rawSql),
-  transaction: rawSql.transaction.bind(rawSql),
 }) as typeof rawSql;
 
 function serializeDbValue(value: unknown) {

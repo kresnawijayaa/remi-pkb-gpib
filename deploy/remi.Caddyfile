@@ -1,0 +1,10 @@
+# Tambahkan blok ini ke Caddyfile pusat yang sudah ada.
+remi.gpibharapanindah.org {
+    encode gzip zstd
+
+    log {
+        output file /data/remi-access.log
+    }
+
+    reverse_proxy remi-pkb-app:3000
+}

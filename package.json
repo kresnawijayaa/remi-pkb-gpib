@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "tsx --test src/lib/flexible/model.test.ts",
+    "test:postgres": "tsx --test src/lib/database.postgres.test.ts",
     "db:reset": "tsx scripts/reset-db.ts",
     "db:seed": "tsx scripts/seed-demo.ts",
     "db:migrate:flexible": "node scripts/migrate-flexible.mjs"
@@ -20,6 +21,7 @@
     "exceljs": "^4.4.0",
     "next": "15.5.19",
     "pdfkit": "^0.20.2",
+    "pg": "^8.23.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "tailwind-merge": "^2.5.5",
@@ -27,9 +29,10 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@types/pdfkit": "^0.17.6",
     "@next/eslint-plugin-next": "^15.5.19",
     "@types/node": "^22.10.2",
+    "@types/pdfkit": "^0.17.6",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
     "@typescript-eslint/eslint-plugin": "^8.62.1",
