@@ -81,6 +81,8 @@
 .neo-event-detail { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; font-size: 13px; }
 .neo-event-detail b { display: block; font-size: 23px; }
 .neo-arrow { font-size: 34px; }
+.neo-button, .neo-back, .neo-text-link, .neo-guide-demo-button { gap: 0.45em; }
+.neo-top nav a, .neo-footer a, .neo-developer-links a { display: inline-flex; align-items: center; gap: 0.4em; }
 .neo-empty { display: grid; justify-items: start; gap: 10px; border: 2px dashed var(--neo-ink); padding: 40px; background: #ece9de; }
 .neo-empty h3 { max-width: 560px; }
 .neo-empty p { margin: 0 0 16px; }

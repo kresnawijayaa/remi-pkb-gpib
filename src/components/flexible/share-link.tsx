@@ -1,5 +1,7 @@
 "use client";
 
+import { IconText } from "@/components/icon";
+
 import { useEffect, useState } from "react";
 
 export function ShareLink({ token, kind = "schedule", shortCode }: { token: string; kind?: "schedule" | "standings"; shortCode?: string | null }) {
@@ -13,5 +15,5 @@ export function ShareLink({ token, kind = "schedule", shortCode }: { token: stri
     try { await navigator.clipboard.writeText(url); setMessage("Link tersalin."); }
     catch { setMessage("Salin manual dari kolom link di atas."); }
   }
-  return <div className="neo-link-box"><label>{shortCode ? "Shortlink publik" : standings ? "Link klasemen publik" : "Link untuk peserta"}<input value={url} readOnly onFocus={event => event.currentTarget.select()} /></label>{shortCode && <p className="neo-hint">Kode {shortCode} dibuat dari tanggal dan waktu pembuatan link dalam WIB. Link token utama tetap aktif di belakangnya.</p>}<div className="neo-actions"><button className="neo-button" type="button" onClick={copy}>Salin link</button><a href={path} className="neo-button neo-secondary" target="_blank" rel="noopener noreferrer">{standings ? "Lihat klasemen ↗" : "Lihat jadwal ↗"}</a></div><p role="status">{message}</p></div>;
+  return <div className="neo-link-box"><label>{shortCode ? "Shortlink publik" : standings ? "Link klasemen publik" : "Link untuk peserta"}<input value={url} readOnly onFocus={event => event.currentTarget.select()} /></label>{shortCode && <p className="neo-hint">Kode {shortCode} dibuat dari tanggal dan waktu pembuatan link dalam WIB. Link token utama tetap aktif di belakangnya.</p>}<div className="neo-actions"><button className="neo-button" type="button" onClick={copy}>Salin link</button><a href={path} className="neo-button neo-secondary" target="_blank" rel="noopener noreferrer">{standings ? <IconText>{"Lihat klasemen ↗"}</IconText> : <IconText>{"Lihat jadwal ↗"}</IconText>}</a></div><p role="status">{message}</p></div>;
 }

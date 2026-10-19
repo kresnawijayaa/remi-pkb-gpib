@@ -1,5 +1,7 @@
 "use client";
 
+import { Icon } from "@/components/icon";
+
 import { useRef, useState } from "react";
 
 type Preview = { rows: { row: number; name: string; community: string }[]; total: number; accepted: number; duplicates: number; newCommunities: number };
@@ -25,7 +27,7 @@ export function ImportParticipants({ eventId, version }: { eventId: string; vers
   }
   return <details className="neo-disclosure"><summary>+ Impor peserta dari file</summary>
     <p>Gunakan Excel, CSV, atau TSV dengan kolom <strong>Nama</strong> dan <strong>Komunitas / Sektor</strong>. Komunitas baru akan didaftarkan otomatis.</p>
-    <a className="neo-text-link" href="/templates/remi-peserta-template.xlsx" download>Unduh template Excel →</a>
+    <a className="neo-text-link" href="/templates/remi-peserta-template.xlsx" download>Unduh template Excel <Icon name="right" /></a>
     <label>Pilih file<input ref={input} type="file" accept=".xlsx,.csv,.tsv" onChange={() => { setPreview(null); setNotice({}); }} /></label>
     {notice.error && <p className="neo-notice neo-error" role="alert">{notice.error}</p>}{notice.message && <p className="neo-notice neo-success">{notice.message}</p>}
     {!preview && <button className="neo-button neo-secondary" type="button" disabled={busy} onClick={() => submit("preview")}>{busy ? "Memeriksa…" : "Periksa file"}</button>}

@@ -1,5 +1,7 @@
 "use client";
 
+import { Icon } from "@/components/icon";
+
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -35,8 +37,8 @@ export function ActionForm({ children, eventId, version, operation, round, class
     <input type="hidden" name="eventId" value={eventId} /><input type="hidden" name="version" value={version ?? 0} /><input type="hidden" name="operation" value={operation} />
     {round !== undefined && <input type="hidden" name="round" value={round} />}
     <fieldset disabled={pending}>{children}</fieldset>
-    {!noticeHidden && state.error && <div className="neo-notice neo-error neo-dismissible-notice" role="alert"><span>{state.error}</span><button type="button" className="neo-notice-close" aria-label="Tutup notifikasi" onClick={() => setNoticeHidden(true)}>×</button></div>}
-    {!noticeHidden && state.message && <div className="neo-notice neo-success neo-dismissible-notice" role="status"><span>{state.message}</span><button type="button" className="neo-notice-close" aria-label="Tutup notifikasi" onClick={() => setNoticeHidden(true)}>×</button></div>}
+    {!noticeHidden && state.error && <div className="neo-notice neo-error neo-dismissible-notice" role="alert"><span>{state.error}</span><button type="button" className="neo-notice-close" aria-label="Tutup notifikasi" onClick={() => setNoticeHidden(true)}><Icon name="close" /></button></div>}
+    {!noticeHidden && state.message && <div className="neo-notice neo-success neo-dismissible-notice" role="status"><span>{state.message}</span><button type="button" className="neo-notice-close" aria-label="Tutup notifikasi" onClick={() => setNoticeHidden(true)}><Icon name="close" /></button></div>}
   </form>;
 }
 

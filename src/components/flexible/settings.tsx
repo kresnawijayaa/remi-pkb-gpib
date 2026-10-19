@@ -1,5 +1,7 @@
 "use client";
 
+import { Icon } from "@/components/icon";
+
 import { useState } from "react";
 import type { Settings } from "@/lib/flexible/model";
 
@@ -15,7 +17,7 @@ export function SettingsFields({ initial }: { initial?: Settings }) {
       <label>Jumlah babak<input name="rounds" type="number" min={1} max={20} required value={rounds} onChange={event => setRounds(Number(event.target.value))} /><small>Bisa disiapkan sebelum pertandingan</small></label>
       <label>Peserta lolos<input name="advancing" type="number" min={1} max={Math.max(1, target)} required value={advancing} onChange={event => setAdvancing(Number(event.target.value))} /><small>Target untuk tahap berikutnya</small></label>
     </div>
-    <div className="neo-summary" aria-live="polite"><strong>{target || "—"} peserta</strong><span>→</span><strong>{capacity > 0 ? Math.ceil(target / capacity) : "—"} meja / babak</strong><span>→</span><strong>{rounds || "—"} babak</strong><span>→</span><strong>{advancing || "—"} lolos</strong></div>
+    <div className="neo-summary" aria-live="polite"><strong>{target || "—"} peserta</strong><span><Icon name="right" /></span><strong>{capacity > 0 ? Math.ceil(target / capacity) : "—"} meja / babak</strong><span><Icon name="right" /></span><strong>{rounds || "—"} babak</strong><span><Icon name="right" /></span><strong>{advancing || "—"} lolos</strong></div>
     {capacity > 0 && target % capacity !== 0 && <p className="neo-notice">Jumlah peserta tidak habis dibagi kapasitas. Sistem akan menambah meja dan membagi peserta semerata mungkin, misalnya 6 peserta menjadi 3–3.</p>}
   </>;
 }

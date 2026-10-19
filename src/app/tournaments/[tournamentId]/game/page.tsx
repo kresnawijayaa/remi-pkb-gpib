@@ -1,3 +1,5 @@
+
+import { Icon } from "@/components/icon";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GameBoard } from "@/components/flexible/game-board";
@@ -16,5 +18,5 @@ export default async function GamePage({ params, searchParams }: { params: Promi
   const requested = Number(query.round ?? 1);
   const selected = Number.isInteger(requested) ? Math.max(1, Math.min(requested, event.data.settings.rounds)) : 1;
   const lockedRounds = event.data.draws.filter(draw => draw.locked).length;
-  return <><Link className="neo-back" href={`/tournaments/${event.id}`}>← {event.data.settings.name}</Link><header className="neo-page-heading"><span className="neo-eyebrow">03 / PERTANDINGAN</span><h1>Input skor</h1><p>Masukkan skor akhir setiap meja dan gunakan urutan akhir jika skor sama jika nilainya sama. Setelah seluruh meja selesai, kunci hasil babak agar dapat menjadi dasar Shuffle Tier berikutnya.</p></header><div className="neo-actions"><Link className="neo-button neo-secondary" href={`/tournaments/${event.id}/standings`}>Lihat klasemen →</Link></div>{developer.enabled && lockedRounds > 0 && !event.data.qualificationLockedAt && <DevScoreTools eventId={event.id} version={event.version} round={selected} lockedRounds={lockedRounds} />}<GameBoard event={event} selected={selected} /></>;
+  return <><Link className="neo-back" href={`/tournaments/${event.id}`}><Icon name="left" /> {event.data.settings.name}</Link><header className="neo-page-heading"><span className="neo-eyebrow">03 / PERTANDINGAN</span><h1>Input skor</h1><p>Masukkan skor akhir setiap meja dan tentukan urutan akhir jika ada skor yang sama. Setelah seluruh meja selesai, kunci hasil babak agar dapat menjadi dasar Shuffle Tier berikutnya.</p></header><div className="neo-actions"><Link className="neo-button neo-secondary" href={`/tournaments/${event.id}/standings`}>Lihat klasemen <Icon name="right" /></Link></div>{developer.enabled && lockedRounds > 0 && !event.data.qualificationLockedAt && <DevScoreTools eventId={event.id} version={event.version} round={selected} lockedRounds={lockedRounds} />}<GameBoard event={event} selected={selected} /></>;
 }
