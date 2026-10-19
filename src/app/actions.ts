@@ -146,7 +146,7 @@ function buildValuesClause(rows: unknown[][], startIndex = 1) {
 
 export async function loginAction(formData: FormData) {
   if (!isAuthEnabled()) {
-    redirect("/");
+    redirect("/tournaments");
   }
 
   const pin = value(formData, "pin");
@@ -165,7 +165,9 @@ export async function loginAction(formData: FormData) {
     maxAge: 60 * 60 * 12,
   });
 
-  redirect("/");
+  // Hindari redirect berantai / -> /tournaments pada respons Server Action.
+  // Header Location dari redirect kedua dapat membuat fetch menerima HTML.
+  redirect("/tournaments");
 }
 
 export async function logoutAction() {

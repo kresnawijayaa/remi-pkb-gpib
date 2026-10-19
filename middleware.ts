@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAuthenticated && isLoginPage) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/tournaments", request.url));
   }
 
   return NextResponse.next();

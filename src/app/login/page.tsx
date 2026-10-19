@@ -12,8 +12,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
-  if (!isAuthEnabled()) redirect("/");
-  if (await isAuthenticated()) redirect("/");
+  if (!isAuthEnabled()) redirect("/tournaments");
+  if (await isAuthenticated()) redirect("/tournaments");
 
   const query = await searchParams;
 
