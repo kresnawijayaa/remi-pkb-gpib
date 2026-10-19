@@ -27,7 +27,9 @@ export function ActionForm({ children, eventId, version, operation, round, class
       }
     }
     if (state.redirectTo) router.push(state.redirectTo);
-    else if (state.nonce) { if (resetOnSuccess) ref.current?.reset(); router.refresh(); }
+    // Server Action mengembalikan tampilan terbaru lewat revalidatePath.
+    // Refresh di sini akan mengulang GET dan pembacaan database sekali lagi.
+    else if (state.nonce && resetOnSuccess) ref.current?.reset();
   }, [state, router, resetOnSuccess]);
   return <form ref={ref} action={action} onSubmit={event => { window.dispatchEvent(new Event("neo:notice-clear")); setNoticeHidden(false); submitted.current = new FormData(event.currentTarget); }} className={`neo-form ${className}`} aria-busy={pending}>
     <input type="hidden" name="eventId" value={eventId} /><input type="hidden" name="version" value={version ?? 0} /><input type="hidden" name="operation" value={operation} />

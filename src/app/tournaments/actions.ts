@@ -238,6 +238,7 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
     await saveEvent(event);
     revalidatePath("/tournaments");
     revalidatePath(`/tournaments/${id}`);
+    revalidatePath(`/tournaments/${id}/communities`);
     revalidatePath(`/tournaments/${id}/draws`);
     revalidatePath(`/tournaments/${id}/game`);
     revalidatePath(`/tournaments/${id}/standings`);
