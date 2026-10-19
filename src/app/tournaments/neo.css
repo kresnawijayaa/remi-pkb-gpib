@@ -245,6 +245,12 @@
 .neo-score-row > div { min-width: 0; overflow-wrap: anywhere; }
 .neo-score-row small { display: block; color: #55574f; font-size: 11px; }
 .neo-score-row input { min-height: 40px !important; }
+.neo-score-row input:disabled, .neo-score-row select:disabled { background: #e8e6dd; color: #55574f; opacity: 1; cursor: not-allowed; }
+.neo-score-row select { min-height: 44px; }
+.neo-score-row.is-tied { background: #fff4b0; border: 2px solid #8a6700; padding: 12px; }
+.neo-tie-label { display: block; margin-top: 8px; font-size: 12px; font-weight: 800; color: #634900; }
+.neo-score-hint { font-size: 14px; line-height: 1.5; }
+.neo-score-hint.has-ties { background: #fff4b0; border: 2px solid #8a6700; padding: 12px; }
 .neo-rank { display: block; margin-top: 5px; font-size: 10px; font-weight: 900; color: #2454a3; }
 .neo-result-lock { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 28px; margin-top: 28px; border: 3px solid var(--neo-ink); background: var(--neo-yellow); padding: 26px; box-shadow: 5px 5px 0 var(--neo-ink); }
 .neo-result-lock.is-locked { background: #d1eccb; }
@@ -465,7 +471,7 @@
   .neo-community-actions { grid-template-columns: 1fr; }
   .neo-score-grid { grid-template-columns: 1fr; }
   .neo-score-row { grid-template-columns: minmax(0, 1fr) 90px; }
-  .neo-score-row > label:last-child { grid-column: 1 / -1; }
+  .neo-score-row > label:last-of-type { grid-column: 1 / -1; }
   .neo-shuffle-modes, .neo-result-lock { grid-template-columns: 1fr; }
   .neo-tier-review dl { grid-template-columns: 1fr 1fr; }
   .neo-login-main { width: min(100% - 36px, 480px); grid-template-columns: 1fr; padding: 38px 0 52px; gap: 30px; }

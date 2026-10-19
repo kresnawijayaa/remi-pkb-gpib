@@ -9,6 +9,7 @@ import { assertRosterEditable, assertScoreEditable, generateDraw, generateSeeded
 import { createEvent, createPublicShortCode, getEvent, saveEvent, tokenHash } from "@/lib/flexible/store";
 import { buildDistribution, buildNames, randomFrom } from "@/lib/flexible/dev-seed";
 import { allRoundResultsLocked, calculateStandings, rankTable, scoringComplete } from "@/lib/flexible/scoring";
+import { scoreEntryState } from "@/lib/flexible/score-entry";
 
 export type ActionState = { error?: string; message?: string; redirectTo?: string; nonce?: string };
 
@@ -153,6 +154,10 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       const draw = data.draws.find(item => item.number === number && item.locked);
       const participantIds = draw?.tables[table - 1];
       if (!draw || !participantIds) throw new RuleError("Pembagian meja terkunci tidak ditemukan.");
+      const entry = scoreEntryState(participantIds.map(id => ({ id, score: String(form.get(`score-${id}`) ?? "") })), Object.fromEntries(participantIds.map(id => [id, String(form.get(`rank-${id}`) ?? "")])));
+      if (!entry.complete) throw new RuleError("Isi seluruh skor meja dengan bilangan bulat yang valid sebelum menyimpan.");
+      // Verify submitted ranks too: automatic ranks are included as hidden fields.
+      if (!entry.valid || entry.rows.some(row => String(form.get(`rank-${row.id}`) ?? "") !== row.rank)) throw new RuleError("Lengkapi peringkat meja. Peserta dengan skor sama harus mendapat peringkat berbeda sesuai posisi yang tersedia.");
       const input = participantIds.map(participantId => ({ participantId, score: z.coerce.number().int().min(-999999).max(999999).parse(form.get(`score-${participantId}`)), manualRank: form.get(`rank-${participantId}`) ? z.coerce.number().int().min(1).max(participantIds.length).parse(form.get(`rank-${participantId}`)) : null }));
       const scores = rankTable(input);
       data.results = [...data.results.filter(result => result.round !== number || result.table !== table), { round: number, table, scores, submittedAt: new Date().toISOString() }];
