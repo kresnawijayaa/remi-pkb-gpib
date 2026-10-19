@@ -122,11 +122,11 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
     } else if (operation === "generate") {
       const draw = generateDraw(data, number);
       data.draws = [...data.draws.filter(item => item.number !== number), draw].sort((first, second) => first.number - second.number);
-      message = `Draft babak ${number} siap. Periksa sebelum dikunci.`;
+      message = `Draf pembagian babak ${number} siap. Periksa sebelum dikunci.`;
     } else if (operation === "generate-seeded") {
       const draw = generateSeededDraw(data, number);
       data.draws = [...data.draws.filter(item => item.number !== number), draw].sort((first, second) => first.number - second.number);
-      message = `Draft adil babak ${number} siap berdasarkan peringkat awal peserta.`;
+      message = `Draf pembagian babak ${number} siap berdasarkan peringkat awal peserta.`;
     } else if (operation === "generate-tier") {
       const draw = generateTierDraw(data, number);
       data.draws = [...data.draws.filter(item => item.number !== number), draw].sort((first, second) => first.number - second.number);
@@ -136,17 +136,17 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       message = "Peserta ditukar. Periksa peringatan rotasi sebelum mengunci.";
     } else if (operation === "lock") {
       const draw = data.draws.find(item => item.number === number);
-      if (!draw) throw new RuleError("Generate pembagian terlebih dahulu.");
+      if (!draw) throw new RuleError("Buat pembagian meja terlebih dahulu.");
       if (data.participants.length !== data.settings.target) throw new RuleError("Jumlah peserta belum sesuai target.");
-      if (data.draws.filter(item => item.number < number && item.locked).length !== number - 1) throw new RuleError("Kunci babak sebelumnya terlebih dahulu.");
+      if (data.draws.filter(item => item.number < number && item.locked).length !== number - 1) throw new RuleError("Kunci pembagian babak sebelumnya terlebih dahulu.");
       validateDraw(data, draw);
       if (form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan bahwa pembagian sudah diperiksa.");
       draw.locked = true;
-      message = `Pembagian babak ${number} dikunci. Skor belum diperlukan.`;
+      message = `Pembagian babak ${number} dikunci. Pertandingan dapat dimulai dan skor dapat diisi.`;
     } else if (operation === "unlock") {
       if (form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan penarikan pembagian dari link publik.");
       unlockDraw(data, number);
-      message = "Kunci dibuka. Babak ini ditarik dari link publik; draft berikutnya dibersihkan.";
+      message = "Kunci pembagian dibuka. Babak ini ditarik dari link publik; draf berikutnya dibersihkan.";
     } else if (operation === "score-table") {
       assertScoreEditable(data, number);
       const table = Number(form.get("table"));
@@ -172,7 +172,7 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
     } else if (operation === "result-unlock") {
       if (form.get("confirm") !== "yes") throw new RuleError("Konfirmasikan pembukaan hasil babak.");
       const invalidated = unlockRoundResults(data, number);
-      message = `Hasil babak ${number} dibuka.${invalidated ? ` ${invalidated} draft Shuffle Tier yang bergantung pada hasil ini dibatalkan.` : ""}`;
+      message = `Hasil babak ${number} dibuka.${invalidated ? ` ${invalidated} draf Shuffle Tier yang bergantung pada hasil ini dibatalkan.` : ""}`;
     } else if (operation === "qualification-lock") {
       if (!scoringComplete(data)) throw new RuleError("Lengkapi skor seluruh meja dan babak sebelum mengunci kelolosan.");
       if (!allRoundResultsLocked(data)) throw new RuleError("Kunci hasil setiap babak sebelum mengunci peserta yang lolos.");
