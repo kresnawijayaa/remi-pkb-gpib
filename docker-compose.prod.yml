@@ -39,7 +39,7 @@ services:
       REMI_ADMIN_PIN: ${REMI_ADMIN_PIN:?Isi REMI_ADMIN_PIN di .env}
       REMI_SESSION_SECRET: ${REMI_SESSION_SECRET:?Isi REMI_SESSION_SECRET di .env}
       REMI_AUTH_ENABLED: "true"
-      REMI_DEV_TOOLS_ENABLED: "false"
+      REMI_DEV_PIN: ${REMI_DEV_PIN:-}
       NODE_OPTIONS: --max-old-space-size=384
       HOSTNAME: 0.0.0.0
       PORT: "3000"

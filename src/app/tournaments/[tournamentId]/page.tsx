@@ -8,12 +8,14 @@ import { ShareLink } from "@/components/flexible/share-link";
 import { SetupNotice } from "@/components/flexible/shell";
 import { getEvent } from "@/lib/flexible/store";
 import { expectedTableCount, scoringComplete } from "@/lib/flexible/scoring";
+import { getDeveloperAccess } from "@/lib/developer-access";
 
 export default async function EventPage({ params }: { params: Promise<{ tournamentId: string }> }) {
   const { tournamentId } = await params;
   let event;
   try { event = await getEvent(tournamentId); } catch { return <SetupNotice />; }
   if (!event) notFound();
+  const developer = await getDeveloperAccess();
   const { settings, draws, participants } = event.data;
   const lockedDraws = draws.filter(draw => draw.locked).sort((first, second) => first.number - second.number);
   const locked = lockedDraws.length;
@@ -31,6 +33,6 @@ export default async function EventPage({ params }: { params: Promise<{ tourname
       <section className="neo-panel"><h2>Jalankan pertandingan</h2><p><strong>{event.data.results.length} hasil meja</strong> sudah masuk. Input skor tersedia setelah pembagian babak dikunci.</p><div className="neo-actions"><Link className="neo-button" href={`/tournaments/${event.id}/game`}>Input skor →</Link><Link className="neo-button neo-secondary" href={`/tournaments/${event.id}/standings`}>Klasemen →</Link></div></section>
       <section className="neo-panel"><h2>Rencana kelolosan</h2><p><strong>{settings.advancing} dari {settings.target} peserta</strong> ditargetkan lolos. Setelah seluruh skor lengkap, peserta teratas dapat dikunci dan dibawa ke turnamen baru.</p></section></aside></div>
     <details className="neo-panel neo-disclosure"><summary>Ubah pengaturan turnamen</summary><ActionForm eventId={event.id} version={event.version} operation="settings"><SettingsFields initial={settings} /><label className="neo-check"><input type="checkbox" name="confirm" value="yes" /><span>Saya memahami perubahan jumlah babak atau format dapat membuang draft pembagian yang terdampak. Babak terkunci harus dibuka terlebih dahulu.</span></label><SendButton>Simpan pengaturan</SendButton></ActionForm></details>
-    {process.env.REMI_DEV_TOOLS_ENABLED === "true" && participants.length < settings.target && <DevTools eventId={event.id} version={event.version} remaining={settings.target - participants.length} />}
+    {developer.enabled && participants.length < settings.target && <DevTools eventId={event.id} version={event.version} remaining={settings.target - participants.length} />}
     <details className="neo-panel neo-disclosure"><summary>Riwayat persiapan</summary><ol className="neo-audit">{event.data.audit.slice(-30).reverse().map((entry, index) => <li key={`${entry.at}-${index}`}><time>{entry.at.replace("T", " ").slice(0, 19)} UTC</time><span>{entry.action}</span></li>)}</ol></details></>;
 }

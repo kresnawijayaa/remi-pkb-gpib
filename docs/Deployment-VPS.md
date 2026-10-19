@@ -16,6 +16,11 @@ Target: Ubuntu x86_64, 1 CPU / RAM 2 GB, Docker Compose v2.26.1, Caddy pusat
 - File `.env` dan backup tidak masuk Git ataupun image.
 - `DATABASE_DRIVER=postgres` memilih koneksi TCP dengan pool maksimal 5 koneksi.
   Nilai default `neon` tetap tersedia untuk development/rollback Vercel.
+- Isi `REMI_DEV_PIN` di `.env` sekali untuk menggunakan tombol Developer di pojok
+  kanan bawah halaman admin. PIN dimasukkan sekali untuk membuka mode selama satu
+  jam, terikat pada sesi login saat itu. Tombol Nonaktifkan/keluar mengakhiri akses.
+  Form simulasi tidak meminta PIN lagi; server tetap memeriksa sesi developer.
+  `REMI_DEV_TOOLS_ENABLED` lama tidak lagi digunakan untuk mengaktifkan fitur.
 
 ## 1. Laptop: build dan push
 

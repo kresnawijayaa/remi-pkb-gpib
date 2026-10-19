@@ -1,9 +1,10 @@
 "use server";
 
-import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { isAuthenticated } from "@/lib/auth";
+import { requireDeveloperAccess } from "@/lib/developer-access";
 import { assertRosterEditable, assertScoreEditable, generateDraw, generateSeededDraw, generateTierDraw, lockRoundResults, markRoundResultsChanged, normalizeCommunityName, RuleError, settingsSchema, swapDraw, unlockDraw, unlockRoundResults, validateDraw } from "@/lib/flexible/model";
 import { createEvent, createPublicShortCode, getEvent, saveEvent, tokenHash } from "@/lib/flexible/store";
 import { buildDistribution, buildNames, randomFrom } from "@/lib/flexible/dev-seed";
@@ -15,6 +16,7 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
   if (!(await isAuthenticated())) return { error: "Sesi berakhir. Masuk kembali sebelum menyimpan." };
   try {
     const operation = String(form.get("operation"));
+    if (operation === "dev-seed" || operation === "dev-score") await requireDeveloperAccess();
     const id = z.string().uuid().parse(form.get("eventId"));
     if (operation === "create") {
       const settings = settingsSchema.parse(Object.fromEntries(form));
@@ -84,10 +86,6 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       message = "Peserta dihapus; nomor peserta lain tidak berubah.";
     } else if (operation === "dev-seed") {
       assertRosterEditable(data);
-      if (process.env.REMI_DEV_TOOLS_ENABLED !== "true" || !process.env.REMI_DEV_PIN) throw new RuleError("Developer tools tidak aktif.");
-      const supplied = Buffer.from(String(form.get("developerPin")));
-      const expected = Buffer.from(process.env.REMI_DEV_PIN);
-      if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) throw new RuleError("PIN developer salah.");
       const input = z.object({ count: z.coerce.number().int().min(1).max(500), communityCount: z.coerce.number().int().min(2).max(30), profile: z.enum(["realistic", "extreme", "random"]), seed: z.coerce.number().int().min(0) }).parse(Object.fromEntries(form));
       if (data.participants.length + input.count > data.settings.target) throw new RuleError("Jumlah data uji melebihi sisa target peserta.");
       const distribution = buildDistribution(input.count, input.communityCount, input.profile, input.seed);
@@ -105,10 +103,6 @@ export async function mutateEvent(_previous: ActionState, form: FormData): Promi
       data.draws = [];
       message = `${input.count} peserta uji ditambahkan dengan distribusi ${input.profile}.`;
     } else if (operation === "dev-score") {
-      if (process.env.REMI_DEV_TOOLS_ENABLED !== "true" || !process.env.REMI_DEV_PIN) throw new RuleError("Developer tools tidak aktif.");
-      const supplied = Buffer.from(String(form.get("developerPin")));
-      const expected = Buffer.from(process.env.REMI_DEV_PIN);
-      if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) throw new RuleError("PIN developer salah.");
       const input = z.object({ scope: z.enum(["round", "all"]), profile: z.enum(["normal", "ties"]), seed: z.coerce.number().int().min(0) }).parse(Object.fromEntries(form));
       const selectedDraws = data.draws.filter(draw => draw.locked && (input.scope === "all" || draw.number === number));
       selectedDraws.forEach(draw => assertScoreEditable(data, draw.number));

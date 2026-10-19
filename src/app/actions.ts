@@ -7,6 +7,7 @@ import { z } from "zod";
 import { sql } from "@/lib/db";
 import { authCookieName, isAuthEnabled, requireLegacyWrite } from "@/lib/auth";
 import { createSession } from "@/lib/session";
+import { developerCookieName } from "@/lib/developer-session";
 import { allowLoginAttempt } from "@/lib/login-limit";
 import { getParticipants, getPreviousTables, getScoredQualificationPlayers, getTournament } from "@/lib/data";
 import { formatCommunityDisplayName, normalizeCommunityName } from "@/lib/tournament/normalization";
@@ -176,6 +177,7 @@ export async function logoutAction() {
   }
 
   const cookieStore = await cookies();
+  cookieStore.set(developerCookieName, "", { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: 0 });
   cookieStore.set(authCookieName, "", {
     httpOnly: true,
     sameSite: "lax",

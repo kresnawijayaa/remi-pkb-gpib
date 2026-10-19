@@ -1,5 +1,7 @@
 import { requireAuth } from "@/lib/auth";
 import { Shell } from "@/components/flexible/shell";
+import { DeveloperToggle } from "@/components/flexible/developer-toggle";
+import { getDeveloperAccess } from "@/lib/developer-access";
 import "./neo.css";
 
 export const metadata = {
@@ -11,5 +13,6 @@ export const dynamic = "force-dynamic";
 
 export default async function TournamentLayout({ children }: { children: React.ReactNode }) {
   await requireAuth();
-  return <Shell>{children}</Shell>;
+  const developer = await getDeveloperAccess();
+  return <Shell>{children}<DeveloperToggle key={developer.enabled ? "enabled" : "disabled"} {...developer} /></Shell>;
 }
