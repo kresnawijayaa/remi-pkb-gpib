@@ -10,7 +10,7 @@ import {
 } from "./model";
 import { formatPublicCode, validPublicCode } from "./public-code";
 import { calculateStandings } from "./scoring";
-import { createSchedulePdf } from "./schedule-pdf";
+import { createSchedulePdf, schedulePublicUrl } from "./schedule-pdf";
 
 function randomSequence(seed = 1) {
   let value = seed >>> 0;
@@ -157,10 +157,18 @@ test("PDF pembagian membuat dua halaman untuk sembilan meja tanpa halaman kosong
     name: "Turnamen Uji PDF",
     draw,
     participants: data.participants.map(person => ({ ...person, community: `Komunitas ${person.communityId}` })),
-    publicUrl: "https://remi.example/m/260921-120000",
+    publicUrl: schedulePublicUrl("261019-153151", "token-uji"),
   });
   const source = pdf.toString("latin1");
   assert.equal(source.startsWith("%PDF-"), true);
   assert.equal((source.match(/\/Type \/Page\b/g) ?? []).length, 2);
   assert.ok(pdf.length > 10_000);
+  assert.ok(source.includes("/URI (https://remi.gpibharapanindah.org/m/261019-153151)"));
+  assert.ok(source.includes("/URI (https://gpibharapanindah.org)"));
+  assert.equal(source.includes("0.0.0.0"), false);
+});
+
+test("link PDF selalu memakai domain publik, dengan fallback untuk link token lama", () => {
+  assert.equal(schedulePublicUrl("261019-153151", "token-uji"), "https://remi.gpibharapanindah.org/m/261019-153151");
+  assert.equal(schedulePublicUrl(null, "token-uji"), "https://remi.gpibharapanindah.org/share/token-uji");
 });

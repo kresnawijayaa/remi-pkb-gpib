@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { authCookieName, isAuthEnabled, verifySession } from "./src/lib/session";
 
 export async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname === "/aturan" || request.nextUrl.pathname === "/aturan/pdf") return NextResponse.next();
   if (request.nextUrl.pathname === "/healthz") return NextResponse.next();
   if (request.nextUrl.pathname.startsWith("/share/")) return NextResponse.next();
   if (!isAuthEnabled()) return NextResponse.next();

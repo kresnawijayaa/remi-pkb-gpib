@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "tsx --test src/lib/flexible/model.test.ts src/lib/flexible/workflow.test.ts src/lib/flexible/score-entry.test.ts src/lib/developer-session.test.ts",
+    "test": "tsx --test src/lib/flexible/model.test.ts src/lib/flexible/competition-rules.test.ts src/lib/flexible/rotation.test.ts src/lib/flexible/workflow.test.ts src/lib/flexible/score-entry.test.ts src/lib/developer-session.test.ts",
     "test:postgres": "tsx --test src/lib/database.postgres.test.ts",
     "db:reset": "tsx scripts/reset-db.ts",
     "db:seed": "tsx scripts/seed-demo.ts",

@@ -102,6 +102,44 @@
 .neo-page-heading { padding-bottom: 32px; max-width: 960px; }
 .neo-page-heading h1 { margin-top: 14px; }
 .neo-page-heading p { font-size: 17px; }
+.neo-rules-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); gap: 40px; align-items: end; margin-bottom: 30px; }
+.neo-rules-hero h1 { margin-top: 18px; font-size: clamp(36px, 5vw, 64px); }
+.neo-rules-hero small { display: block; font-size: 13px; }
+.neo-rules-hero aside { border-top: 3px solid var(--neo-ink); padding-top: 20px; }
+.neo-rules-hero aside p { font-size: 14px; }
+.neo-rules-flow { display: flex; flex-wrap: wrap; gap: 18px; border-block: 2px solid var(--neo-ink); padding: 18px 0; }
+.neo-rules-flow > span { display: inline-flex; align-items: center; gap: 18px; }
+.neo-rules-nav { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 24px 0 40px; }
+.neo-rules-nav a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: underline; text-underline-offset: 4px; font-size: 14px; }
+.neo-rules-body { max-width: 980px; }
+.neo-rules-section { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 22px; border-top: 1px solid #b6b5a8; padding: 30px 0; scroll-margin-top: 24px; }
+.neo-rules-number { font-size: 20px; font-weight: 900; color: #55574f; }
+.neo-rules-section h2 { font-size: clamp(24px, 3vw, 32px); }
+.neo-rules-section ul, .neo-rules-briefing ul { list-style: disc; padding-left: 22px; }
+.neo-rules-section li, .neo-rules-briefing li { padding: 6px 0; line-height: 1.7; }
+.neo-rules-points { display: grid; grid-template-columns: repeat(5, minmax(85px, 1fr)); overflow-x: auto; border: 2px solid var(--neo-ink); margin: 24px 0; }
+.neo-rules-points > div { padding: 12px; background: #fffaf0; border-right: 1px solid #b6b5a8; }
+.neo-rules-points > div:last-child { border-right: 0; }
+.neo-rules-points span { font-size: 13px; }
+.neo-rules-points strong { display: block; font-size: 28px; margin-top: 8px; }
+.neo-rules-points small { font-size: 13px; font-weight: 500; }
+.neo-rules-ranking { list-style: none; padding: 0; margin: 22px 0; }
+.neo-rules-ranking li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 3px 12px; padding: 12px 0; border-bottom: 1px solid #d3d0c4; }
+.neo-rules-ranking b { grid-row: span 2; }
+.neo-rules-ranking span { font-weight: 800; }
+.neo-rules-ranking small { grid-column: 2; }
+.neo-rules-note { background: #eeeadd; border: 1px solid #b6ad96; padding: 16px; margin-block: 24px; }
+.neo-rules-note p { margin-bottom: 0; }
+.neo-rules-example table { min-width: 440px; }
+.neo-rules-example caption { text-align: left; font-size: 14px; font-weight: 800; padding: 12px; }
+.neo-rules-example tfoot { font-weight: 800; background: var(--neo-blue); }
+.neo-rules-briefing { border-top: 3px solid var(--neo-ink); padding-top: 28px; margin-top: 24px; max-width: 980px; }
+@media (max-width: 760px) {
+  .neo-rules-hero { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .neo-rules-section { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .neo-rules-flow { gap: 12px; font-size: 14px; }
+  .neo-rules-flow > span { gap: 12px; }
+}
 .neo-two-col { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); align-items: start; gap: 28px; margin-bottom: 30px; }
 .neo-panel { min-width: 0; border: 2px solid var(--neo-ink); background: #fffcf5; padding: 26px; box-shadow: 4px 4px 0 var(--neo-ink); }
 .neo-stack { display: grid; gap: 28px; }
@@ -292,7 +330,7 @@
 .neo-public-standing-table .is-rank-1 { background: var(--neo-yellow); }
 .neo-public-standing-table .is-rank-2 { background: #e1e7e9; }
 .neo-public-standing-table .is-rank-3 { background: #f2d2b6; }
-.neo-standing-rule { margin: 0 0 14px; padding: 11px 14px; border: 1px solid var(--neo-ink); background: #fff4aa; font-size: 12px; }
+.neo-app .neo-standing-rule { max-width: none; margin: 0 0 14px; padding: 11px 14px; border: 1px solid var(--neo-ink); background: #fff4aa; font-size: 12px; }
 .neo-standing-history { margin-top: 42px; }
 .neo-standing-history-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
 .neo-standing-history-head h2 { margin: 12px 0 5px; }

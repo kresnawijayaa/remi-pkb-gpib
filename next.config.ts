@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["pdfkit", "pg"],
   outputFileTracingIncludes: {
     "/share/[token]/pdf": ["./node_modules/pdfkit/js/**/*"],
+    "/aturan/pdf": ["./node_modules/pdfkit/js/**/*"],
   },
   eslint: {
     ignoreDuringBuilds: true,

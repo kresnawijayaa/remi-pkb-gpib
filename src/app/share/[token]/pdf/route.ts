@@ -1,5 +1,5 @@
 import { getSharedEvent } from "@/lib/flexible/store";
-import { createSchedulePdf } from "@/lib/flexible/schedule-pdf";
+import { createSchedulePdf, schedulePublicUrl } from "@/lib/flexible/schedule-pdf";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -18,8 +18,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
     const round = Number(requestUrl.searchParams.get("round"));
     const draw = event.draws.find(item => item.number === round);
     if (!draw) return new Response("Babak tidak ditemukan atau belum dikunci.", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
-    const publicPath = event.shortCode ? `/m/${event.shortCode}` : `/share/${token}`;
-    const pdf = await createSchedulePdf({ name: event.name, draw, participants: event.participants, publicUrl: new URL(publicPath, requestUrl.origin).toString() });
+    const pdf = await createSchedulePdf({ name: event.name, draw, participants: event.participants, publicUrl: schedulePublicUrl(event.shortCode, token) });
     return new Response(new Uint8Array(pdf), {
       headers: {
         "Content-Type": "application/pdf",

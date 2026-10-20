@@ -17,6 +17,11 @@ const ink = "#20221e";
 const paper = "#fffaf0";
 const yellow = "#f8dc45";
 
+export function schedulePublicUrl(shortCode: string | null | undefined, token: string) {
+  const publicPath = shortCode ? `/m/${shortCode}` : `/share/${token}`;
+  return new URL(publicPath, "https://remi.gpibharapanindah.org").toString();
+}
+
 function pdfText(value: string | number) {
   return String(value).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\xFF]/g, "?");
 }
@@ -65,7 +70,6 @@ function drawPageFrame(doc: PDFKit.PDFDocument, input: SchedulePdfInput, pageNum
   doc.fillColor(ink).font("Helvetica-Bold").fontSize(7).text("PKB GPIB HARAPAN INDAH", 42, 785, { width: 170, link: churchUrl, underline: true });
   doc.font("Helvetica").fontSize(6.5).text(pdfText(input.publicUrl), 178, 785, { width: 300, align: "center", link: input.publicUrl, underline: true });
   doc.font("Helvetica-Bold").fontSize(7).text(`${pageNumber}/${pageCount}`, 500, 785, { width: 53, align: "right" });
-  doc.font("Helvetica").fontSize(6).fillColor("#55574f").text("Klik nama gereja atau link pembagian untuk membuka versi web.", 42, 802, { width: 511, align: "center" });
 }
 
 export async function createSchedulePdf(input: SchedulePdfInput) {

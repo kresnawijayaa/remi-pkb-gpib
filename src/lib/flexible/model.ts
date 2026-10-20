@@ -132,22 +132,27 @@ function meetingMap(previous: Draw[]) {
   return meetings;
 }
 
-export function reviewDraw(tables: string[][], participants: Person[], previous: Draw[]) {
-  const people = new Map(participants.map(person => [person.id, person]));
-  const meetings = meetingMap(previous);
+function reviewTable(table: string[], people: Map<string, Person>, meetings: Map<string, number>) {
   let repeats = 0;
   let sameCommunity = 0;
   let communityPenalty = 0;
-  for (const table of tables) {
-    const counts = new Map<string, number>();
-    for (const id of table) {
-      const communityId = people.get(id)?.communityId;
-      if (communityId) counts.set(communityId, (counts.get(communityId) ?? 0) + 1);
-    }
-    for (const count of counts.values()) { sameCommunity += count * (count - 1) / 2; communityPenalty += Math.max(0, count - 1) ** 2 * 25; }
-    for (let first = 0; first < table.length; first++) for (let second = first + 1; second < table.length; second++) repeats += meetings.get(pairKey(table[first], table[second])) ?? 0;
+  const counts = new Map<string, number>();
+  for (const id of table) {
+    const communityId = people.get(id)?.communityId;
+    if (communityId) counts.set(communityId, (counts.get(communityId) ?? 0) + 1);
   }
+  for (const count of counts.values()) { sameCommunity += count * (count - 1) / 2; communityPenalty += Math.max(0, count - 1) ** 2 * 25; }
+  for (let first = 0; first < table.length; first++) for (let second = first + 1; second < table.length; second++) repeats += meetings.get(pairKey(table[first], table[second])) ?? 0;
   return { repeats, sameCommunity, penalty: repeats * 1000 + communityPenalty };
+}
+
+export function reviewDraw(tables: string[][], participants: Person[], previous: Draw[]) {
+  const people = new Map(participants.map(person => [person.id, person]));
+  const meetings = meetingMap(previous);
+  return tables.reduce((total, table) => {
+    const current = reviewTable(table, people, meetings);
+    return { repeats: total.repeats + current.repeats, sameCommunity: total.sameCommunity + current.sameCommunity, penalty: total.penalty + current.penalty };
+  }, { repeats: 0, sameCommunity: 0, penalty: 0 });
 }
 
 function shuffle<T>(items: T[], random: () => number) {
@@ -185,7 +190,9 @@ export function generateDraw(data: EventData, number: number, random = Math.rand
       });
       tables[selected].push(person.id);
     }
-    let penalty = reviewDraw(tables, data.participants, previous).penalty;
+    // History and per-table costs stay valid until a swap changes those tables.
+    const tablePenalties = tables.map(table => reviewTable(table, people, meetings).penalty);
+    let penalty = tablePenalties.reduce((sum, value) => sum + value, 0);
     for (let iteration = 0; iteration < Math.min(2000, data.participants.length * 8); iteration++) {
       const firstTable = Math.floor(random() * tables.length);
       let secondTable = Math.floor(random() * tables.length);
@@ -193,8 +200,15 @@ export function generateDraw(data: EventData, number: number, random = Math.rand
       const firstSeat = Math.floor(random() * tables[firstTable].length);
       const secondSeat = Math.floor(random() * tables[secondTable].length);
       [tables[firstTable][firstSeat], tables[secondTable][secondSeat]] = [tables[secondTable][secondSeat], tables[firstTable][firstSeat]];
-      const candidate = reviewDraw(tables, data.participants, previous).penalty;
-      if (candidate <= penalty) penalty = candidate;
+      const firstPenalty = reviewTable(tables[firstTable], people, meetings).penalty;
+      // A one-table tournament swaps seats within the same table: count it once.
+      const secondPenalty = secondTable === firstTable ? 0 : reviewTable(tables[secondTable], people, meetings).penalty;
+      const candidate = penalty - tablePenalties[firstTable] - (secondTable === firstTable ? 0 : tablePenalties[secondTable]) + firstPenalty + secondPenalty;
+      if (candidate <= penalty) {
+        penalty = candidate;
+        tablePenalties[firstTable] = firstPenalty;
+        if (secondTable !== firstTable) tablePenalties[secondTable] = secondPenalty;
+      }
       else [tables[firstTable][firstSeat], tables[secondTable][secondSeat]] = [tables[secondTable][secondSeat], tables[firstTable][firstSeat]];
     }
     if (penalty < bestPenalty) { best = tables.map(table => [...table]); bestPenalty = penalty; }
