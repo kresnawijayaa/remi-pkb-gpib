@@ -5,6 +5,8 @@ import { communityName, RuleError, upgradeEventData } from "./model";
 import { calculateStandings, expectedTableCount } from "./scoring";
 import { formatPublicCode, validPublicCode } from "./public-code";
 import { requireAuth } from "@/lib/auth";
+import { requireDeveloperAccess } from "@/lib/developer-access";
+import { bulkDeletionSql, type DeletionCandidate } from "./bulk-delete";
 
 function database() {
   if (!process.env.DATABASE_URL) throw new RuleError("DATABASE_URL belum diatur.");
@@ -45,6 +47,23 @@ export async function listEvents() {
   const sql = database();
   const rows = await sql`select id, version, data, share_token from remi_events_v2 order by created_at desc limit 100`;
   return rows.map(record);
+}
+
+export async function listDeletionCandidates(): Promise<DeletionCandidate[]> {
+  await requireAuth();
+  await requireDeveloperAccess();
+  const rows = await database().query(`select id, version, data #>> '{settings,name}' as name,
+    jsonb_array_length(data -> 'participants') as participants, data ->> 'parentId' as parent_id
+    from remi_events_v2 order by created_at desc`);
+  return rows.map(row => ({ id: String(row.id), version: Number(row.version), name: String(row.name), participants: Number(row.participants), parentId: row.parent_id ? String(row.parent_id) : null }));
+}
+
+export async function deleteEvents(selection: { id: string; version: number }[]) {
+  await requireAuth();
+  await requireDeveloperAccess();
+  if (!selection.length) throw new RuleError("Pilih turnamen terlebih dahulu.");
+  const deleted = await database().query(bulkDeletionSql, [JSON.stringify(selection)]);
+  if (deleted.length !== selection.length) throw new RuleError("Tidak ada turnamen dihapus. Data mungkin berubah atau memiliki tahap lanjutan yang belum dipilih. Muat ulang, lalu pilih juga seluruh tahap lanjutannya.");
 }
 
 export async function getEvent(id: string) {

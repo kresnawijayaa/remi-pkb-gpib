@@ -167,6 +167,13 @@
 @keyframes neo-notice-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 .neo-error { background: #f9d9d1; }
 .neo-success { background: #d1eccb; }
+.neo-bulk-delete { margin-top: 32px; }
+.neo-bulk-delete > summary { cursor: pointer; min-height: 44px; }
+.neo-bulk-options { max-height: 360px; overflow-y: auto; border-block: 1px solid var(--neo-ink); }
+.neo-bulk-options .neo-check { border-bottom: 1px solid #d8d2c5; padding: 12px 4px; }
+.neo-bulk-options small { display: block; margin-top: 4px; }
+.neo-bulk-delete .neo-notice p { margin-bottom: 0; }
+.neo-delete-button { background: #f9d9d1; }
 .neo-check { display: flex !important; gap: 10px !important; align-items: flex-start; font-size: 12px !important; font-weight: 500 !important; padding: 8px 0; min-height: 44px; }
 .neo-progress { display: grid; grid-template-columns: repeat(3, 1fr); border: 2px solid var(--neo-ink); background: var(--neo-blue); margin-bottom: 32px; }
 .neo-progress > span { padding: 17px; border-right: 2px solid var(--neo-ink); font-size: 12px; }

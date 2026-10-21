@@ -1,13 +1,17 @@
 
 import { Icon } from "@/components/icon";
 import Link from "next/link";
-import { listEvents } from "@/lib/flexible/store";
+import { listEvents, listDeletionCandidates } from "@/lib/flexible/store";
+import { getDeveloperAccess } from "@/lib/developer-access";
+import { BulkDeleteEvents } from "@/components/flexible/bulk-delete-events";
 import { SetupNotice } from "@/components/flexible/shell";
 import { scoringComplete } from "@/lib/flexible/scoring";
 
 export default async function TournamentsPage() {
   let events;
   try { events = await listEvents(); } catch { return <SetupNotice />; }
+  const developer = await getDeveloperAccess();
+  const deletionCandidates = developer.enabled ? await listDeletionCandidates() : null;
   return <>
     <section className="neo-hero"><div><span className="neo-eyebrow">DAFTAR TURNAMEN</span><h1>Turnamen REMI</h1><p>Kelola peserta, pembagian meja, skor, klasemen, dan tahap lanjutan turnamen.</p><div className="neo-actions"><Link className="neo-button" href="/tournaments/new">+ Buat turnamen</Link><Link className="neo-button neo-secondary" href="/tournaments/panduan">Pelajari cara kerja <Icon name="right" /></Link><Link className="neo-button neo-secondary" href="/aturan">Aturan pertandingan <Icon name="right" /></Link></div></div><div className="neo-poster" aria-hidden="true"><span>ALUR PESERTA</span><div>200 <b><Icon name="diagonal" /></b><br />20 <b><Icon name="diagonal" /></b> 10</div><small>PESERTA AWAL · LOLOS · FINAL</small></div></section>
     <section><div className="neo-section-heading"><h2>Daftar turnamen <span className="neo-count">{events.length}</span></h2><Link className="neo-text-link" href="/tournaments/panduan">Buka panduan panitia <Icon name="right" /></Link></div>
@@ -19,5 +23,6 @@ export default async function TournamentsPage() {
         return <Link className="neo-event" href={`/tournaments/${event.id}`} key={event.id}><div><span className={`neo-tag ${locked === settings.rounds ? "neo-green" : ""}`}>{status}</span><h3>{settings.name}</h3></div><div className="neo-event-detail"><span><b>{participants.length}/{settings.target}</b> peserta</span><span><b>{locked}/{settings.rounds}</b> pembagian dikunci</span><span><b>{settings.advancing}</b> lolos</span></div><span className="neo-arrow" aria-hidden="true"><Icon name="external" /></span></Link>;
       })}</div>}
     </section><div className="neo-footnote">Mencari pertandingan sebelumnya? <Link href="/tournaments-old">Buka arsip REMI lama <Icon name="right" /></Link></div>
+    {deletionCandidates && <BulkDeleteEvents events={deletionCandidates} />}
   </>;
 }
