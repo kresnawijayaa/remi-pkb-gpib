@@ -1,0 +1,121 @@
+CONTEKAN MEETING PANITIA REMI
+Target 30-60 menit. Fokus satu alur, tidak perlu memainkan semua babak.
+
+1. PEMBUKAAN
+"Web ini membantu mengelola peserta, membagi meja, mencatat skor,
+menghitung klasemen, dan menentukan peserta yang lanjut.
+Keputusan permainan tetap di panitia. Kita harus memastikan inputnya benar."
+
+Format acara sementara:
+- Sekitar 200 peserta, menyesuaikan pendaftaran.
+- Maksimal 5 peserta per meja.
+- Penyisihan 5 babak, lalu 20 peserta lolos.
+- Format tahap setelah 20 besar masih perlu dipastikan.
+
+2. JELASKAN ALURNYA
+Daftar peserta -> susun meja -> kunci pembagian -> pertandingan
+-> input skor -> periksa -> kunci hasil babak -> babak berikutnya.
+Setelah semua babak selesai: periksa klasemen -> kunci peserta lolos
+-> buat tahap lanjutan.
+
+TIGA KUNCI YANG HARUS DIBEDAKAN:
+- Kunci pembagian = susunan meja sudah resmi, bukan skor.
+- Kunci hasil babak = skor seluruh meja di babak itu sudah disahkan.
+- Kunci peserta lolos = daftar peserta yang lanjut sudah disahkan.
+
+3. DEMO PESERTA DAN PEMBAGIAN
+- Gunakan turnamen LATIHAN, jangan turnamen acara asli.
+- Tunjukkan upload Excel 200 peserta: Periksa file, lihat preview, baru impor.
+- Komunitas dari file akan didaftarkan otomatis.
+- Susun babak 1 dengan Shuffle Rotasi, periksa, lalu kunci pembagian.
+- Buka link pembagian di HP dan tunjukkan unduh PDF.
+
+Penjelasan shuffle:
+- Rotasi: mengurangi pertemuan ulang dan peserta satu komunitas.
+  Bisa disiapkan tanpa menunggu skor babak sebelumnya.
+- Tier: berdasarkan peringkat meja babak sebelumnya, bukan klasemen total.
+  Top 2 diusahakan bersama Top 2; peringkat 3-5 bersama kelompoknya.
+  Pasangan Top dari meja asal yang sama diusahakan dipisah.
+  Mulai babak 2, setelah HASIL babak sebelumnya dikunci.
+- Keduanya optimasi, bukan jaminan semua konflik hilang.
+- Meja dibagi merata: 12 peserta menjadi 4-4-4, bukan 5-5-2.
+
+4. DEMO INPUT SKOR
+Pindah ke turnamen latihan 20 peserta supaya cepat.
+Siapkan dan kunci pembagian babak 1, lalu buka input skor.
+
+Contoh satu meja, isi peserta dari atas ke bawah:
+900, 700, 500, 500, 300.
+
+- Setelah semua skor terisi, peringkat yang tidak seri otomatis terisi.
+- Dua skor 500 membutuhkan keputusan panitia: peringkat 3 dan 4.
+- Jangan mengubah skor hanya untuk memecah seri.
+- Simpan setelah semua peringkat lengkap.
+- Coba koreksi 700 menjadi 710, simpan, lalu cek perubahan klasemen.
+- Lengkapi meja lainnya, periksa, lalu KUNCI HASIL BABAK.
+
+"Input skor tersimpan belum berarti hasil babaknya sudah dikunci."
+
+5. JELASKAN POIN DAN KLASEMEN
+- Skor adalah angka hasil permainan.
+- Poin berasal dari peringkat meja:
+  Peringkat 1 = 5 poin, 2 = 4, 3 = 3, 4 = 2, 5 = 1.
+- Gold, Silver, Bronze = jumlah finis posisi 1, 2, 3. Bukan bonus poin.
+- Meja 3 orang tetap mendapat 5, 4, 3 poin.
+
+Urutan klasemen:
+Total poin -> total skor -> Gold -> Silver -> Bronze.
+Kriteria berikutnya dipakai hanya jika kriteria sebelumnya sama.
+Nomor peserta bukan pemecah seri.
+
+"Poin sama belum tentu posisi sama. Setelah poin, kita cek total skor."
+
+6. DEMO LINK PUBLIK
+- Link pembagian: peserta melihat meja dan babak yang sudah dikunci.
+- Link klasemen: peserta melihat klasemen dan riwayat hasil per babak.
+- Tunjukkan pencarian nama dan satu contoh hitung ulang riwayat peserta.
+- Klasemen sementara menghitung skor yang sudah disimpan, meski hasil
+  babaknya belum dikunci. Perhatikan jumlah babak yang sudah dimainkan.
+- Pembaruan publik otomatis tiap 30 detik; bisa Perbarui sekarang.
+- PDF pembagian adalah salinan saat diunduh. Jika ada revisi, cek web lagi.
+
+7. AKHIR PENYISIHAN DAN TAHAP LANJUTAN
+- Semua skor lengkap dan hasil setiap babak dikunci.
+- Periksa klasemen serta batas kelolosan sebelum mengunci peserta lolos.
+- Buat tahap lanjutan dari peserta yang lolos.
+- Tahap baru mulai skor dan poin dari nol.
+- Tidak perlu mendemokan seluruh babak jika prosesnya sama.
+
+PERHATIAN:
+Jika poin, skor, Gold, Silver, dan Bronze sama persis di batas lolos,
+jangan langsung kunci kelolosan. Keputusan pemecah seri dari panitia.
+Web saat ini belum menyediakan pilihan pemenang seri penuh secara manual;
+koordinasikan dengan pengelola, jangan mengarang perubahan skor.
+
+8. PEMBAGIAN TUGAS DAN ANTISIPASI MASALAH
+- Siapa input, siapa memeriksa, siapa mengesahkan kunci?
+- Siapa mengelola proyektor/link, dan siapa cadangan teknis?
+- Walau beda meja, dua operator bisa konflik saat simpan turnamen yang sama.
+  Sepakati giliran. Jika ditolak karena data berubah, cek dengan operator lain,
+  muat ulang, lalu input ulang hanya yang belum tersimpan.
+- Koneksi putus: catat di kertas. Setelah pulih, cek hasil tersimpan dahulu.
+- Salah input: cocokkan bukti dan koordinasikan koreksi.
+  Hasil terkunci perlu prosedur pembukaan kunci terkait; Tier bisa terdampak.
+- Walkout, terlambat, diskualifikasi, aturan seri, dan batas protes tetap
+  perlu keputusan panitia. Aplikasi tidak memutuskan otomatis.
+
+9. PENUTUP / PRAKTIK PANITIA
+Minta setiap operator mencoba minimal satu meja dan satu kasus seri.
+Pastikan mereka bisa menjelaskan tiga jenis kunci dengan bahasanya sendiri.
+Catat keputusan yang belum selesai dan siapa penanggung jawabnya.
+
+"Yang penting bukan hafal semua tombol. Yang penting tahu urutannya,
+siapa yang memeriksa, dan kapan harus berhenti untuk koordinasi."
+
+PENGINGAT PRESENTER
+- Siapkan laptop, HP, proyektor, hotspot, dan tab publik sebelum meeting.
+- Gunakan file 02 untuk demo impor 200; file 01 untuk latihan 20 peserta.
+- File 04 adalah acuan mengetik skor, BUKAN file upload skor.
+- Skor simulasi developer MENIMPA skor babak yang dipilih.
+  Gunakan hanya pada data latihan yang boleh ditimpa.
+- Matikan developer setelah latihan. Jangan demokan hapus semua turnamen.

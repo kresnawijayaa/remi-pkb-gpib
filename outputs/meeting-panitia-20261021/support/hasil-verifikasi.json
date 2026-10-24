@@ -1,0 +1,182 @@
+{
+  "checkedAt": "2026-10-21T09:43:41.580Z",
+  "scope": "Local file parsing and in-memory scoring/draw only. No database or production writes.",
+  "checks": [
+    {
+      "filename": "data/01-peserta-demo-20.xlsx",
+      "status": "PASS",
+      "participants": 20,
+      "communities": 4,
+      "tables": 4,
+      "tableSizes": [
+        5,
+        5,
+        5,
+        5
+      ]
+    },
+    {
+      "filename": "data/01-peserta-demo-20.csv",
+      "status": "PASS",
+      "participants": 20,
+      "communities": 4,
+      "tables": 4,
+      "tableSizes": [
+        5,
+        5,
+        5,
+        5
+      ]
+    },
+    {
+      "filename": "data/02-peserta-skala-200.xlsx",
+      "status": "PASS",
+      "participants": 200,
+      "communities": 10,
+      "tables": 40,
+      "tableSizes": [
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5
+      ]
+    },
+    {
+      "filename": "data/02-peserta-skala-200.csv",
+      "status": "PASS",
+      "participants": 200,
+      "communities": 10,
+      "tables": 40,
+      "tableSizes": [
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5
+      ]
+    },
+    {
+      "filename": "data/03-peserta-meja-merata-12.xlsx",
+      "status": "PASS",
+      "participants": 12,
+      "communities": 3,
+      "tables": 3,
+      "tableSizes": [
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "filename": "data/03-peserta-meja-merata-12.csv",
+      "status": "PASS",
+      "participants": 12,
+      "communities": 3,
+      "tables": 3,
+      "tableSizes": [
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "filename": "latihan-error/05-sengaja-duplikat.xlsx",
+      "status": "EXPECTED_REJECTION",
+      "message": "Baris 4: pasangan nama dan komunitas duplikat di dalam file."
+    },
+    {
+      "filename": "latihan-error/05-sengaja-duplikat.csv",
+      "status": "EXPECTED_REJECTION",
+      "message": "Baris 4: pasangan nama dan komunitas duplikat di dalam file."
+    },
+    {
+      "filename": "latihan-error/06-sengaja-header-salah.xlsx",
+      "status": "EXPECTED_REJECTION",
+      "message": "Header wajib: Nama dan Komunitas / Sektor. Unduh template agar formatnya sesuai."
+    },
+    {
+      "filename": "latihan-error/06-sengaja-header-salah.csv",
+      "status": "EXPECTED_REJECTION",
+      "message": "Header wajib: Nama dan Komunitas / Sektor. Unduh template agar formatnya sesuai."
+    },
+    {
+      "filename": "data/04-acuan-skor-bukan-untuk-impor.xlsx",
+      "status": "PASS",
+      "scoreRows": 60,
+      "tables": 12,
+      "totalPoints": 180,
+      "checkerBlank": true
+    }
+  ]
+}
