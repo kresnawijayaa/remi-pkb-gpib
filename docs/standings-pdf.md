@@ -1,6 +1,6 @@
 # PDF klasemen
 
-Tombol unduh tersedia pada daftar turnamen, halaman utama turnamen, klasemen admin, dan klasemen publik. PDF mengekspor seluruh klasemen tersimpan, bukan hasil filter pencarian di browser. Belum ada hasil tetap menghasilkan satu halaman berisi keterangan kosong.
+Tombol unduh tersedia pada panel **Bagikan klasemen** di halaman utama turnamen, klasemen admin, dan klasemen publik. Tidak ditampilkan pada daftar `/tournaments`. PDF mengekspor seluruh klasemen tersimpan, bukan hasil filter pencarian di browser. Belum ada hasil tetap menghasilkan satu halaman berisi keterangan kosong.
 
 ## Kontrak unduhan
 

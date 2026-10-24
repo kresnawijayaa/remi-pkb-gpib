@@ -77,9 +77,6 @@
 .neo-event-list { border-top: 3px solid var(--neo-ink); }
 .neo-event { display: grid; grid-template-columns: 1fr 1.2fr 40px; align-items: center; gap: 24px; border-bottom: 2px solid var(--neo-ink); padding: 28px 8px; }
 .neo-event:hover { background: #ebe6d8; }
-.neo-event-row { border-bottom: 2px solid var(--neo-ink); }
-.neo-event-row .neo-event { border-bottom: 0; }
-.neo-event-download { margin: 0 8px 20px; }
 .neo-event h3 { margin-top: 12px; }
 .neo-event-detail { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; font-size: 13px; }
 .neo-event-detail b { display: block; font-size: 23px; }
