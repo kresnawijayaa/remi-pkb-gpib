@@ -15,7 +15,7 @@ function medalName(rank: number) {
   return `Posisi ${rank}`;
 }
 
-export function PublicStandings({ name, rounds, completedTables, expectedTables, final, standings, updatedAt }: { name: string; rounds: number; completedTables: number; expectedTables: number; final: boolean; standings: PublicStandingRow[]; updatedAt: string }) {
+export function PublicStandings({ name, rounds, completedTables, expectedTables, final, standings, updatedAt, pdfUrl }: { name: string; rounds: number; completedTables: number; expectedTables: number; final: boolean; standings: PublicStandingRow[]; updatedAt: string; pdfUrl: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [query, setQuery] = useState("");
@@ -28,7 +28,7 @@ export function PublicStandings({ name, rounds, completedTables, expectedTables,
 
   return <>
     <header className="neo-public-standing-head"><div><span className={`neo-tag ${final ? "neo-green" : "neo-blue"}`}>{final ? "HASIL AKHIR" : "KLASEMEN SEMENTARA"}</span><h1>{name}</h1><p>Peringkat diperbarui otomatis setiap 30 detik selama pertandingan berlangsung.</p></div><div className="neo-live-summary"><span><small>HASIL MEJA</small><strong>{completedTables}/{expectedTables}</strong></span><span><small>BABAK</small><strong>{rounds}</strong></span></div></header>
-    <div className="neo-public-standing-tools"><p><span className="neo-live-dot" aria-hidden="true" /> Terakhir diperbarui {updatedAt}</p><button className="neo-button neo-secondary" type="button" disabled={pending} onClick={() => startTransition(() => router.refresh())}>{pending ? "Memuat…" : <IconText>{"↻ Perbarui sekarang"}</IconText>}</button></div>
+    <div className="neo-public-standing-tools"><p><span className="neo-live-dot" aria-hidden="true" /> Terakhir diperbarui {updatedAt}</p><div className="neo-actions"><a className="neo-button neo-secondary" href={pdfUrl}><Icon name="download" /> Unduh PDF klasemen</a><button className="neo-button neo-secondary" type="button" disabled={pending} onClick={() => startTransition(() => router.refresh())}>{pending ? "Memuat…" : <IconText>{"↻ Perbarui sekarang"}</IconText>}</button></div></div>
     {standings.length ? <>
       <div className="neo-public-standing-search"><label htmlFor="standing-search">Cari peserta<input id="standing-search" type="search" autoComplete="off" value={query} onChange={event => setQuery(event.target.value)} placeholder="Nama, nomor, atau komunitas…" /></label><span aria-live="polite">{normalizedQuery ? `${visibleStandings.length} peserta ditemukan` : `${standings.length} peserta dalam klasemen`}</span></div>
       {visibleStandings.length ? <>

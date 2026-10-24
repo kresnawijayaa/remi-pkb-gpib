@@ -2,7 +2,7 @@ import { databaseSql } from "../database";
 import { createHash } from "node:crypto";
 import type { EventData, EventRecord } from "./model";
 import { communityName, RuleError, upgradeEventData } from "./model";
-import { calculateStandings, expectedTableCount } from "./scoring";
+import { standingsSnapshot } from "./standings-data";
 import { formatPublicCode, validPublicCode } from "./public-code";
 import { requireAuth } from "@/lib/auth";
 import { requireDeveloperAccess } from "@/lib/developer-access";
@@ -102,17 +102,6 @@ export async function getSharedStandings(token: string) {
   const rows = await sql`select data, updated_at from remi_events_v2 where data ->> 'standingsShareHash' = ${tokenHash(token)}`;
   if (!rows[0]) return null;
   const data = upgradeEventData(rows[0].data);
-  const people = new Map(data.participants.map(person => [person.id, person]));
-  const history = new Map<string, { round: number; table: number; score: number; tableRank: number; points: number }[]>();
-  for (const result of data.results) for (const score of result.scores) {
-    const rounds = history.get(score.participantId) ?? [];
-    rounds.push({ round: result.round, table: result.table, score: score.score, tableRank: score.tableRank, points: score.tournamentPoint });
-    history.set(score.participantId, rounds);
-  }
-  const standings = calculateStandings(data).map((row, index) => {
-    const person = people.get(row.participantId);
-    return { rank: index + 1, number: person?.number ?? 0, name: person?.name ?? "Peserta tidak ditemukan", community: person ? communityName(data, person) : "", played: row.completedRounds, firsts: row.firsts, seconds: row.seconds, thirds: row.thirds, points: row.totalPoint, totalScore: row.totalScore, history: (history.get(row.participantId) ?? []).sort((first, second) => first.round - second.round) };
-  });
   const updatedAt = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", dateStyle: "medium", timeStyle: "medium" }).format(new Date(String(rows[0].updated_at)));
-  return { name: data.settings.name, rounds: data.settings.rounds, completedTables: data.results.length, expectedTables: expectedTableCount(data), final: Boolean(data.qualificationLockedAt), standings, updatedAt: `${updatedAt} WIB` };
+  return { ...standingsSnapshot(data, `${updatedAt} WIB`), shortCode: data.standingsShareCode };
 }

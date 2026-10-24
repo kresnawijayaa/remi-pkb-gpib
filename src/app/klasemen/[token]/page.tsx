@@ -13,5 +13,5 @@ export default async function PublicStandingsPage({ params }: { params: Promise<
   try { event = await getSharedStandings(token); }
   catch { return <Shell publicView publicMode="standings"><div className="neo-empty"><h1>Klasemen belum dapat dimuat.</h1><p>Koneksi sedang bermasalah. Muat ulang halaman atau hubungi panitia.</p></div></Shell>; }
   if (!event) notFound();
-  return <Shell publicView publicMode="standings"><PublicStandings {...event} /></Shell>;
+  return <Shell publicView publicMode="standings"><PublicStandings {...event} pdfUrl={`/klasemen/${token}/pdf`} /></Shell>;
 }

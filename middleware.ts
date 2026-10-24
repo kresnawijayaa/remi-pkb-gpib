@@ -6,6 +6,7 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === "/aturan" || request.nextUrl.pathname === "/aturan/pdf") return NextResponse.next();
   if (request.nextUrl.pathname === "/healthz") return NextResponse.next();
   if (request.nextUrl.pathname.startsWith("/share/")) return NextResponse.next();
+  if (/^\/(klasemen|k|m)\//.test(request.nextUrl.pathname)) return NextResponse.next();
   if (!isAuthEnabled()) return NextResponse.next();
 
   const isLoginPage = request.nextUrl.pathname === "/login";
